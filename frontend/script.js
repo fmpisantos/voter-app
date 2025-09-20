@@ -712,7 +712,6 @@ function updateUI() {
     const scoredCount = currentIdeas.filter(idea => idea.score !== null).length;
     const totalIdeas = currentIdeas.length;
 
-    document.getElementById('ideasRanked').textContent = scoredCount;
     document.getElementById('totalIdeas').textContent = totalIdeas;
 
     const progress = (scoredCount / totalIdeas) * 100;
@@ -745,17 +744,13 @@ function updateRoundInfo() {
     let roundText = `Round ${currentRound}`;
 
     if (currentRound === 1) {
-        roundText += `: Score all ${currentGroup.ideas.length} ideas (2, 1, or 0) - Quotas: max 20% score 2, max 40% score 1`;
+        roundText += `: Score all ideas (2, 1, or 0)`;
     } else if (currentRound === 2) {
-        const totalGroups = votingGroups.length;
-        const currentGroupNumber = currentGroupIndex + 1;
         const round1Score = currentGroup.round1Score;
-        roundText += ` (Group ${currentGroupNumber}/${totalGroups}): Score ${currentGroup.ideas.length} ideas from Round 1 score ${round1Score} group (2, 1, or 0)`;
+        roundText += `: Ideas that were previously scored with ${round1Score}`;
     } else if (currentRound === 3) {
-        const totalGroups = votingGroups.length;
-        const currentGroupNumber = currentGroupIndex + 1;
         const cumulativeScore = currentGroup.cumulativeScore;
-        roundText += ` (Group ${currentGroupNumber}/${totalGroups}): Score ${currentGroup.ideas.length} ideas with cumulative score ${cumulativeScore} (2, 1, or 0)`;
+        roundText += `: Ideas with cumulative score ${cumulativeScore}`;
     }
 
     roundInfoElement.textContent = roundText;
@@ -765,7 +760,6 @@ function updateRoundInfo() {
 
 function updateFinalResultsUI() {
     const survivingIdeas = finalResults.filter(result => result.finalScore > 0).length;
-    document.getElementById('ideasRanked').textContent = survivingIdeas;
     document.getElementById('totalIdeas').textContent = originalIdeas.length;
     document.getElementById('progressFill').style.width = '100%';
 
@@ -811,9 +805,10 @@ async function toggleResults() {
 
 function displayResults(results) {
     document.getElementById('totalVotes').textContent = results.total_votes;
-    document.getElementById('avgScore2').textContent = results.score_distributions[2] || 0;
-    document.getElementById('avgScore1').textContent = results.score_distributions[1] || 0;
-    document.getElementById('avgScore0').textContent = results.score_distributions[0] || 0;
+    // Display total points instead of counts (count × score value)
+    document.getElementById('avgScore2').textContent = ((results.score_distributions[2] || 0) * 2);
+    document.getElementById('avgScore1').textContent = ((results.score_distributions[1] || 0) * 1);
+    document.getElementById('avgScore0').textContent = ((results.score_distributions[0] || 0) * 0);
 
     const averageScoresList = document.getElementById('averageScoresList');
     averageScoresList.innerHTML = '';
