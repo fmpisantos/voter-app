@@ -24,18 +24,10 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        .idea-container {
-            flex-direction: row;
-        }
-
         .container {
-            max-width: 1600px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 24px;
-            display: flex;
-            gap: clamp(16px, 4vw, 32px);
-            align-items: flex-start;
-            flex-direction: row-reverse;
         }
 
         .header {
@@ -68,17 +60,7 @@
             min-width: 400px;
         }
 
-        .main-content {
-            flex: 1;
-            min-width: 0;
-        }
 
-        .sidebar {
-            width: 300px;
-            min-width: 280px;
-            max-width: 350px;
-            flex-shrink: 0;
-        }
 
         .game-container {
             background: rgba(255, 255, 255, 0.95);
@@ -203,7 +185,7 @@
 
         .ideas-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
         }
 
@@ -216,6 +198,7 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             position: relative;
             cursor: pointer;
+            margin-bottom: 16px;
         }
 
         .idea-card:hover {
@@ -224,89 +207,29 @@
             border-color: #6366f1;
         }
 
-        .idea-card.voted {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        .ranked-list {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            position: sticky;
-            top: 24px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .ranked-list h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .ranked-item {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ranked-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-        }
-
-        .ranked-item.voted {
+        .idea-card.ranked {
             background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
             border-color: #6366f1;
         }
 
-        .rank-number {
+        .rank-badge {
             position: absolute;
-            top: 8px;
-            left: 8px;
-            width: 24px;
-            height: 24px;
+            top: 12px;
+            left: 12px;
+            width: 32px;
+            height: 32px;
             background: linear-gradient(135deg, #6366f1, #8b5cf6);
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.875rem;
             font-weight: 700;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
         }
 
-        .ranked-item-content {
-            margin-left: 32px;
-        }
 
-        .ranked-item-title {
-            font-weight: 600;
-            color: #1e293b;
-            font-size: 0.9rem;
-            margin-bottom: 4px;
-        }
-
-        .ranked-item-description {
-            color: #64748b;
-            font-size: 0.8rem;
-            line-height: 1.3;
-        }
 
         .idea-title {
             font-weight: 600;
@@ -526,14 +449,7 @@
                 padding: 20px;
             }
 
-            .sidebar {
-                width: 260px;
-                min-width: 240px;
-            }
 
-            .main-content {
-                min-width: 350px;
-            }
 
             .game-container,
             .results-section {
@@ -548,16 +464,7 @@
                 gap: 24px;
             }
 
-            .sidebar {
-                width: 100%;
-                order: 1;
-                min-width: unset;
-                max-width: unset;
-            }
 
-            .main-content {
-                min-width: unset;
-            }
 
             .header h1 {
                 font-size: 2.5rem;
@@ -576,6 +483,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .ideas-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            }
+
             .controls {
                 flex-direction: column;
                 align-items: center;
@@ -586,10 +497,7 @@
                 max-width: 280px;
             }
 
-            .ranked-list {
-                padding: 16px;
-                max-height: 60vh;
-            }
+
 
 
         }
@@ -618,14 +526,7 @@
                 padding: 16px;
             }
 
-            .ranked-list {
-                padding: 12px;
-                max-height: 50vh;
-            }
 
-            .ranked-item {
-                padding: 12px;
-            }
 
             .control-button {
                 padding: 12px 24px;
@@ -675,8 +576,7 @@
                 <p>Click ideas to rank them from best to worst. First click = best, second = second best, etc.</p>
             </div>
 
-            <div class="idea-container">
-                <div class="game-container">
+            <div class="game-container">
                     <div class="round-indicator">
                         <div class="round active" id="round1">Round 1</div>
                         <div class="round" id="round2">Round 2</div>
@@ -725,22 +625,6 @@
                         <button class="control-button secondary" id="resetBtn">Reset Game</button>
                     </div>
                 </div>
-
-                <div class="sidebar">
-                    <div class="ranked-list">
-                        <h3>🏆 Your Rankings</h3>
-                        <div id="rankedList">
-                            <div class="ranked-item" style="opacity: 0.5;">
-                                <div class="ranked-item-content">
-                                    <div class="ranked-item-title">Click ideas to rank them</div>
-                                    <div class="ranked-item-description">First click = best, second = second best, etc.</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <div class="results-section" id="resultsSection" style="display: none;">
             <h2 class="section-title">🏆 Final Results</h2>
@@ -838,10 +722,48 @@
 
             const activeIdeas = ideas.filter(idea => !eliminatedIdeas.has(idea.id));
 
-            activeIdeas.forEach((idea, index) => {
+            // Separate ranked and unranked ideas
+            const currentVoter = voters.find(v => !v.hasVoted);
+            const rankedIdeas = [];
+            const unrankedIdeas = [];
+
+            if (currentVoter && votes[currentVoter.id]) {
+                activeIdeas.forEach(idea => {
+                    if (votes[currentVoter.id][idea.id]) {
+                        rankedIdeas.push({...idea, rank: votes[currentVoter.id][idea.id].rank});
+                    } else {
+                        unrankedIdeas.push(idea);
+                    }
+                });
+            } else {
+                unrankedIdeas.push(...activeIdeas);
+            }
+
+            // Sort ranked ideas by rank
+            rankedIdeas.sort((a, b) => a.rank - b.rank);
+
+            // Render ranked ideas first (they will appear first in grid)
+            rankedIdeas.forEach((idea, index) => {
+                const ideaCard = document.createElement('div');
+                ideaCard.className = 'idea-card fade-in-up ranked';
+                ideaCard.style.animationDelay = `${index * 0.05}s`;
+                ideaCard.setAttribute('data-idea-id', idea.id);
+                ideaCard.innerHTML = `
+                    <div class="rank-badge">${idea.rank}</div>
+                    <div class="idea-title">${idea.title}</div>
+                    <div class="idea-description">${idea.description}</div>
+                    <div style="margin-top: 16px; font-size: 0.875rem; color: #10b981; font-weight: 500;">
+                        ✓ Ranked #${idea.rank}
+                    </div>
+                `;
+                ideasGrid.appendChild(ideaCard);
+            });
+
+            // Render unranked ideas (they will appear after ranked ones in grid)
+            unrankedIdeas.forEach((idea, index) => {
                 const ideaCard = document.createElement('div');
                 ideaCard.className = 'idea-card fade-in-up';
-                ideaCard.style.animationDelay = `${index * 0.05}s`;
+                ideaCard.style.animationDelay = `${(rankedIdeas.length + index) * 0.05}s`;
                 ideaCard.setAttribute('data-idea-id', idea.id);
                 ideaCard.onclick = () => rankIdea(idea.id);
                 ideaCard.innerHTML = `
@@ -893,44 +815,20 @@
             idea.totalScore += score;
             idea.voters.add(currentVoter.id);
 
-            // Animate idea to ranked list
-            animateIdeaToRanked(ideaId, currentRank);
-
             // Mark idea as voted for this voter
             const ideaCard = document.querySelector(`[data-idea-id="${ideaId}"]`);
             if (ideaCard) {
                 ideaCard.classList.add('voted');
             }
 
+            // Re-render ideas to show new order
+            renderIdeas();
+
             updateUI();
             checkRoundCompletion();
         }
 
-        // Animate idea moving to ranked list
-        function animateIdeaToRanked(ideaId, rank) {
-            const idea = ideas.find(i => i.id === ideaId);
-            const rankedList = document.getElementById('rankedList');
 
-            // Create ranked item
-            const rankedItem = document.createElement('div');
-            rankedItem.className = 'ranked-item voted slide-in-right';
-            rankedItem.innerHTML = `
-                <div class="rank-number">${rank}</div>
-                <div class="ranked-item-content">
-                    <div class="ranked-item-title">${idea.title}</div>
-                    <div class="ranked-item-description">${idea.description}</div>
-                </div>
-            `;
-
-            // Add to ranked list
-            rankedList.appendChild(rankedItem);
-
-            // Remove placeholder if it exists
-            const placeholder = rankedList.querySelector('.ranked-item[style*="opacity: 0.5"]');
-            if (placeholder) {
-                placeholder.remove();
-            }
-        }
 
 
 
@@ -985,17 +883,6 @@
 
                 // Reset voters for next round
                 voters.forEach(v => v.hasVoted = false);
-
-                // Clear ranked list
-                const rankedList = document.getElementById('rankedList');
-                rankedList.innerHTML = `
-                    <div class="ranked-item" style="opacity: 0.5;">
-                        <div class="ranked-item-content">
-                            <div class="ranked-item-title">Click ideas to rank them</div>
-                            <div class="ranked-item-description">First click = best, second = second best, etc.</div>
-                        </div>
-                    </div>
-                `;
 
                 currentRound++;
                 document.getElementById('nextRoundBtn').disabled = true;
@@ -1067,17 +954,6 @@
                 idea.roundScores = {1: 0, 2: 0, 3: 0};
                 idea.voters = new Set();
             });
-
-            // Clear ranked list
-            const rankedList = document.getElementById('rankedList');
-            rankedList.innerHTML = `
-                <div class="ranked-item" style="opacity: 0.5;">
-                    <div class="ranked-item-content">
-                        <div class="ranked-item-title">Click ideas to rank them</div>
-                        <div class="ranked-item-description">First click = best, second = second best, etc.</div>
-                    </div>
-                </div>
-            `;
 
             document.getElementById('resultsSection').style.display = 'none';
             document.querySelector('.game-container').style.display = 'block';
