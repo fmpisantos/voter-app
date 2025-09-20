@@ -235,12 +235,63 @@ body {
     border-radius: 16px;
     padding: 24px;
     padding-left: 24px;
-    padding-right: 60px; /* Extra right padding for drag handle */
+    padding-right: 24px; /* Normal padding since no drag handle */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px var(--shadow-light);
     position: relative;
-    cursor: pointer;
+    cursor: default;
     margin-bottom: 16px;
+}
+
+.score-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    justify-content: center;
+}
+
+.score-button {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg-card);
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.score-button:hover:not(.disabled) {
+    border-color: var(--color-primary);
+    background: rgba(0, 102, 204, 0.05);
+    transform: translateY(-1px);
+}
+
+.score-button.active {
+    background: var(--gradient-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-white);
+    box-shadow: 0 2px 8px var(--shadow-primary);
+}
+
+.score-button.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: var(--color-border-disabled);
+    color: var(--color-text-white);
+}
+
+.score-status {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
 }
 
 .idea-card:hover {
@@ -262,6 +313,24 @@ body {
 .idea-card.moving {
     transform: scale(1.02);
     box-shadow: 0 8px 25px var(--shadow-extra-heavy);
+}
+
+.score-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    width: 32px;
+    height: 32px;
+    background: var(--gradient-primary);
+    color: var(--color-text-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px var(--shadow-primary-hover);
+    z-index: 5;
 }
 
 .rank-badge {
@@ -301,12 +370,12 @@ body {
 }
 
 /* Adjust spacing for ranked ideas to avoid overlap with rank badge and drag handle */
-.idea-card.ranked .idea-title {
+.idea-card.scored .idea-title {
     margin-left: 64px; /* 16px (left) + 32px (badge) + 16px spacing */
-    font-size: 1rem; /* Smaller font size for ranked titles */
+    font-size: 1rem; /* Smaller font size for scored titles */
 }
 
-.idea-card.ranked .idea-description {
+.idea-card.scored .idea-description {
     margin-left: 0; /* Keep description at normal position */
 }
 

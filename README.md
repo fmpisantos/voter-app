@@ -1,14 +1,15 @@
-# Voter App - Idea Ranking System
+# Voter App - Idea Scoring System
 
-A modern, single-user idea ranking application with drag-and-drop functionality built with vanilla JavaScript, HTML, and CSS.
+A modern, single-user idea scoring application with constraint validation built with vanilla JavaScript, HTML, and CSS.
 
 ## Features
 
-- **Click to Rank**: Click on any idea to rank it from best to worst
-- **Drag to Reorder**: Use the ⇅ handle on ranked ideas to reorder them
-- **Visual Feedback**: Smooth animations and hover effects
-- **Progress Tracking**: See how many ideas you've ranked
-- **Submit Rankings**: Send your rankings to a server (placeholder implementation)
+- **Score Assignment**: Assign scores (0-2) to all ideas with constraint validation
+- **Constraint Enforcement**: Max 40% of ideas can have score 2, max 30% can have score 1
+- **Visual Feedback**: Smooth animations and hover effects for score buttons
+- **Progress Tracking**: See how many ideas you've scored
+- **Complete Validation**: Ensures all ideas are scored before submission
+- **Score Distribution**: Automatic sorting by score for better organization
 
 ## Getting Started
 
@@ -38,10 +39,14 @@ The application will be available at `http://localhost:3000`
 
 ## How to Use
 
-1. **Rank Ideas**: Click on any idea card to rank it
-2. **Reorder Rankings**: Use the ⇅ handle in the top-right corner of ranked cards to drag and reorder them
-3. **Unrank Ideas**: Click on a ranked idea to remove its ranking
-4. **Submit Vote**: Click the "Submit Vote" button when you're satisfied with your rankings
+1. **Score Ideas**: Click on score buttons (0, 1, 2) for each idea
+2. **Constraint Limits**:
+   - Score 2: Maximum 40% of total ideas (8 out of 20)
+   - Score 1: Maximum 30% of total ideas (6 out of 20)
+   - Score 0: Remaining ideas (unlimited)
+3. **Change Scores**: Click the same score button again to remove it, or click a different score
+4. **Complete All**: You must score all ideas before submitting
+5. **Submit Scores**: Click the "Submit Vote" button when all ideas are scored
 
 ## File Structure
 
@@ -59,21 +64,21 @@ voter-app/
 - **HTML5**: Semantic markup and structure
 - **CSS3**: Modern styling with gradients, animations, and responsive design
 - **Vanilla JavaScript**: No frameworks, pure JavaScript for functionality
-- **Drag and Drop API**: Native browser drag-and-drop functionality
+- **Constraint Validation**: Real-time validation of scoring limits
+- **CSS Custom Properties**: Theme management with CSS variables
 
 ## Browser Support
 
 Works in all modern browsers that support:
 - ES6+ JavaScript features
 - CSS Grid and Flexbox
-- Drag and Drop API
 - CSS Custom Properties
 
 ## Development
 
 The application is built with a clean separation of concerns:
 - **HTML**: Structure and content
-- **CSS**: Presentation and styling
-- **JavaScript**: Behavior and functionality
+- **CSS**: Presentation and styling with custom properties
+- **JavaScript**: Behavior, scoring logic, and constraint validation
 
 All code is well-commented and follows modern JavaScript best practices.

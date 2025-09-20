@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Round Voting System</title>
+    <title>Idea Scoring System</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💡</text></svg>">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,8 +13,8 @@
     <div class="container">
         <div class="main-content">
             <div class="header">
-                <h1>🗳️ Idea Ranking</h1>
-                <p>Click ideas to rank them from best to worst. Use the ⇅ icon to reorder ranked ideas. Click ranked ideas to unrank them.</p>
+                <h1>🗳️ Idea Scoring</h1>
+                <p>Assign scores (0-2) to all ideas. Score 2: max 40% of ideas, Score 1: max 30% of ideas, Score 0: remaining ideas.</p>
             </div>
 
             <div class="game-container">
@@ -27,7 +27,7 @@
                 <div class="stats">
                     <div class="stat">
                         <div class="stat-number" id="ideasRanked">0</div>
-                        <div class="stat-label">Ideas Ranked</div>
+                        <div class="stat-label">Ideas Scored</div>
                     </div>
                     <div class="stat">
                         <div class="stat-number" id="totalIdeas">20</div>
@@ -36,14 +36,14 @@
                 </div>
 
                 <div class="ideas-section">
-                    <h2 class="section-title">💡 Ideas to Rank</h2>
+                    <h2 class="section-title">💡 Ideas to Score</h2>
                     <div class="ideas-grid" id="ideasGrid">
                     </div>
                 </div>
 
                 <div class="controls">
                     <button class="control-button" id="submitVoteBtn" disabled>Submit Vote</button>
-                    <button class="control-button secondary" id="resetBtn">Reset Ranking</button>
+                    <button class="control-button secondary" id="resetBtn">Reset Scoring</button>
                 </div>
             </div>
         </div>

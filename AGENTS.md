@@ -23,7 +23,7 @@
 ### CSS
 - CSS Grid and Flexbox for layouts
 - CSS custom properties for theming
-- BEM-like naming convention (.idea-card, .rank-badge)
+- BEM-like naming convention (.idea-card, .score-badge)
 - 4 spaces indentation
 - Group related properties together
 
@@ -37,5 +37,5 @@
 - Use `const` for immutable variables, `let` for mutable
 - Add event listeners properly with `addEventListener`
 - Use `querySelector` and `querySelectorAll` for DOM selection
-- Handle drag-and-drop with native browser APIs
-- Validate user input before processing
+- Validate scoring constraints before assignment
+- Ensure all ideas are scored before submission
