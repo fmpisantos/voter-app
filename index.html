@@ -573,7 +573,7 @@
         <div class="main-content">
             <div class="header">
                 <h1>🗳️ Voter App</h1>
-                <p>Click ideas to rank them from best to worst. First click = best, second = second best, etc.</p>
+                <p>Click ideas to rank them from best to worst. First click = best, second = second best, etc. Click ranked ideas to unrank them.</p>
             </div>
 
             <div class="game-container">
@@ -748,12 +748,13 @@
                 ideaCard.className = 'idea-card fade-in-up ranked';
                 ideaCard.style.animationDelay = `${index * 0.05}s`;
                 ideaCard.setAttribute('data-idea-id', idea.id);
+                ideaCard.onclick = () => rankIdea(idea.id);
                 ideaCard.innerHTML = `
                     <div class="rank-badge">${idea.rank}</div>
                     <div class="idea-title">${idea.title}</div>
                     <div class="idea-description">${idea.description}</div>
                     <div style="margin-top: 16px; font-size: 0.875rem; color: #10b981; font-weight: 500;">
-                        ✓ Ranked #${idea.rank}
+                        ✓ Ranked #${idea.rank} - Click to unrank
                     </div>
                 `;
                 ideasGrid.appendChild(ideaCard);
@@ -777,7 +778,7 @@
             });
         }
 
-        // Rank an idea (click-based ranking)
+        // Rank or unrank an idea (click-based ranking)
         function rankIdea(ideaId) {
             // Find current voter
             const currentVoter = voters.find(v => !v.hasVoted);
@@ -786,9 +787,11 @@
                 return;
             }
 
-            // Check if idea already voted by this voter
+            // Check if idea is already ranked by this voter
             if (votes[currentVoter.id] && votes[currentVoter.id][ideaId]) {
-                return; // Already voted
+                // Unrank the idea
+                unrankIdea(ideaId, currentVoter.id);
+                return;
             }
 
             // Get current ranking count for this voter
@@ -819,6 +822,30 @@
             const ideaCard = document.querySelector(`[data-idea-id="${ideaId}"]`);
             if (ideaCard) {
                 ideaCard.classList.add('voted');
+            }
+
+            // Re-render ideas to show new order
+            renderIdeas();
+        }
+
+        // Unrank an idea (remove its ranking)
+        function unrankIdea(ideaId, voterId) {
+            // Get the vote data before removing it
+            const voteData = votes[voterId][ideaId];
+
+            // Remove the vote
+            delete votes[voterId][ideaId];
+
+            // Update idea scores (subtract the points)
+            const idea = ideas.find(i => i.id === ideaId);
+            idea.roundScores[currentRound] -= voteData.score;
+            idea.totalScore -= voteData.score;
+            idea.voters.delete(voterId);
+
+            // Remove voted class from the idea card
+            const ideaCard = document.querySelector(`[data-idea-id="${ideaId}"]`);
+            if (ideaCard) {
+                ideaCard.classList.remove('voted');
             }
 
             // Re-render ideas to show new order
