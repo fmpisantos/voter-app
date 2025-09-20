@@ -16,11 +16,6 @@ function hideEmailModal() {
     modal.classList.remove('show');
 }
 
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
 async function validateUserEmail(email) {
     try {
         const response = await fetch(`${API_BASE_URL}/validate-email`, {
@@ -60,16 +55,10 @@ async function handleEmailSubmit(event) {
     const emailError = document.getElementById('emailError');
     const submitButton = event.target.querySelector('button[type="submit"]');
 
-    const email = emailInput.value.trim();
+    let email = emailInput.value.trim();
 
     if (!email) {
         emailError.textContent = 'Please enter an email address.';
-        emailError.style.display = 'block';
-        return;
-    }
-
-    if (!validateEmail(email)) {
-        emailError.textContent = 'Please enter a valid email address.';
         emailError.style.display = 'block';
         return;
     }
@@ -81,7 +70,8 @@ async function handleEmailSubmit(event) {
     const validationResult = await validateUserEmail(email);
 
     if (validationResult.valid) {
-        userEmail = email;
+        userEmail = validationResult.email;
+        email = validationResult.email;
         hideEmailModal();
 
         // Show user email in the top left
@@ -186,8 +176,8 @@ function renderIdeas() {
             </div>
             <div class="score-status">
                 ${idea.score !== null ?
-                    `Score: ${idea.score} (click to change or remove)` :
-                    'Select a score (0-2)'}
+                `Score: ${idea.score} (click to change or remove)` :
+                'Select a score (0-2)'}
             </div>
         `;
 
@@ -384,8 +374,6 @@ async function submitVote() {
         const result = await response.json();
 
         if (response.ok) {
-            console.log('Vote submitted successfully:', result);
-
             // Also save the scores for this user
             try {
                 await fetch(`${API_BASE_URL}/save-scores`, {
@@ -446,16 +434,7 @@ function updateScoreCounts() {
             scoreCounts[idea.score]++;
         }
     });
-
-    const totalIdeas = ideas.length;
-    const maxScore2 = Math.floor(totalIdeas * MAX_SCORE_2_PERCENTAGE);
-    const maxScore1 = Math.floor(totalIdeas * MAX_SCORE_1_PERCENTAGE);
-
-    console.log('Score distribution:', scoreCounts);
-    console.log(`Limits - Score 2: ${scoreCounts[2]}/${maxScore2}, Score 1: ${scoreCounts[1]}/${maxScore1}`);
 }
-
-
 
 async function fetchResults() {
     try {
@@ -501,7 +480,7 @@ function displayResults(results) {
     }
 
     const sortedIdeas = Object.entries(results.average_scores)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([, a], [, b]) => b - a)
         .map(([id, avg]) => {
             const idea = ideas.find(i => i.id == id);
             return {

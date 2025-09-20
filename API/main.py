@@ -12,8 +12,8 @@ submitted_votes = []
 user_scores = {}
 
 valid_emails = [
-    "filipesantosdev@gmail.com",
-    "pipas.sporting@gmail.com"
+    "Filipe",
+    "Pedro"
 ]
 
 IDEA_TEMPLATES = [
@@ -168,21 +168,12 @@ def validate_email():
 
     email = data['email'].strip()
 
-    # Basic email validation
-    import re
-    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    match = next((e for e in valid_emails if e.lower() == email.lower()), None)
 
-    if not re.match(email_regex, email):
-        return jsonify({"valid": False, "error": "Invalid email format"}), 400
-
-    # Additional validation (you can add more sophisticated checks here)
-    if len(email) > 254:  # RFC 5321 limit
-        return jsonify({"valid": False, "error": "Email address too long"}), 400
-
-    if not email in valid_emails:
+    if not match:
         return jsonify({"valid": False, "error": "Wrong email address check for typos"}), 400
 
-    return jsonify({"valid": True})
+    return jsonify({"valid": True, "email": match})
 
 @app.route('/user-scores', methods=['GET'])
 def get_user_scores():
