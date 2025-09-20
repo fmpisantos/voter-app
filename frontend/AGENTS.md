@@ -41,7 +41,7 @@
 - **Scripts**: `deploy.sh` for deployment, `run.py` for development
 
 ### API Endpoints
-- `GET /ideas` - Fetch ideas with optional user scores
+- `GET /ideas` - Fetch ideas with optional user scores, or return voting status if user has already voted
 - `POST /submit-final-results` - Submit final accumulated scores from frontend
 - `POST /submit-all-votes` - Submit scores (legacy, round-by-round)
 - `POST /submit-vote` - Submit scores (legacy, round-by-round)
@@ -49,16 +49,17 @@
 - `GET /final-results` - Get combined final results
 - `GET /results` - Voting results and statistics
 - `GET /round-info` - Current round status
-- `GET /user-status` - Check if specific user has voted
+- `GET /user-status` - Check if specific user has submitted final results
 - `GET /all-users-status` - Get voting status for all users
 
 ### User Flow
 - **Email Validation**: User enters email address
-- **Status Check**: System checks if user has already voted
-- **If Already Voted**: Shows status page with all users' voting progress
-- **If All Users Done**: Displays final normalized results
-- **If Not Voted**: Starts the 3-round voting process
+- **API Check**: `/ideas` endpoint checks if user has already submitted final results
+- **If Already Voted**: Returns status object with all users' voting progress
+- **If All Users Done**: Displays final combined results
+- **If Not Voted**: Returns ideas and starts the 3-round voting process
 - **Status Indicators**: ✅ for completed users, ⏳ for waiting users
+- **Status Response**: Includes message, user list, completion counts, and all_voted flag
 
 ### Score Calculation
 - **Process**: Frontend calculates accumulated scores across all rounds

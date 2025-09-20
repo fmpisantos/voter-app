@@ -83,7 +83,10 @@ async function getAllUsersStatus() {
 
 async function showVotingStatusPage() {
     const statusData = await getAllUsersStatus();
+    await showVotingStatusPageFromAPI(statusData);
+}
 
+async function showVotingStatusPageFromAPI(statusData) {
     // Hide the main game container and show status page
     document.querySelector('.game-container').style.display = 'none';
 
@@ -293,7 +296,18 @@ async function fetchIdeas() {
     if (!response.ok) {
         throw new Error('Failed to fetch ideas');
     }
-    ideas = await response.json();
+
+    const data = await response.json();
+
+    // Check if user has already voted
+    if (data.status === 'already_voted') {
+        // User has already voted - show status page
+        await showVotingStatusPageFromAPI(data);
+        return;
+    }
+
+    // Normal case - user hasn't voted yet
+    ideas = data;
 }
 
 function renderIdeas() {

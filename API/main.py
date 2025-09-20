@@ -334,10 +334,40 @@ def get_round_info():
 
 @app.route('/ideas', methods=['GET'])
 def get_ideas():
-    """Get all available ideas for scoring"""
-    current_ideas = load_current_round_ideas()
-
+    """Get all available ideas for scoring, or return status if user has already voted"""
     email = request.args.get('email', '').strip().lower()
+
+    if email:
+        # Check if user has already submitted final results
+        user_final_file = f'user_final_results_{email.replace("@", "_").replace(".", "_")}.json'
+        if os.path.exists(user_final_file):
+            # User has already voted - return status information
+            users_status = []
+
+            for valid_email in valid_emails:
+                user_file = f'user_final_results_{valid_email.replace("@", "_").replace(".", "_")}.json'
+                has_voted = os.path.exists(user_file)
+
+                users_status.append({
+                    "email": valid_email,
+                    "has_voted": has_voted,
+                    "status": "completed" if has_voted else "waiting"
+                })
+
+            all_voted = all(user["has_voted"] for user in users_status)
+
+            return jsonify({
+                "status": "already_voted",
+                "message": "You have already completed your voting",
+                "user_email": email,
+                "users": users_status,
+                "all_voted": all_voted,
+                "total_users": len(valid_emails),
+                "voted_count": sum(1 for user in users_status if user["has_voted"])
+            })
+
+    # User hasn't voted yet - return ideas for voting
+    current_ideas = load_current_round_ideas()
 
     ideas = []
     for idx, idea in enumerate(current_ideas):
@@ -803,12 +833,12 @@ def get_final_results():
 
 @app.route('/user-status', methods=['GET'])
 def get_user_status():
-    """Check if a specific user has voted"""
+    """Check if a specific user has submitted final results"""
     email = request.args.get('email', '').strip().lower()
     if not email:
         return jsonify({"error": "Email required"}), 400
 
-    user_file = f'user_votes_{email.replace("@", "_").replace(".", "_")}.json'
+    user_file = f'user_final_results_{email.replace("@", "_").replace(".", "_")}.json'
     has_voted = os.path.exists(user_file)
 
     return jsonify({
@@ -823,7 +853,7 @@ def get_all_users_status():
     users_status = []
 
     for email in valid_emails:
-        user_file = f'user_votes_{email.replace(
+        user_file = f'user_final_results_{email.replace(
             "@", "_").replace(".", "_")}.json'
         has_voted = os.path.exists(user_file)
 
