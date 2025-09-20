@@ -16,28 +16,19 @@ valid_emails = [
     "Pedro"
 ]
 
-IDEA_TEMPLATES = [
-    'Implement AI-powered customer support',
-    'Create mobile app for inventory management',
-    'Develop blockchain-based voting system',
-    'Build automated testing framework',
-    'Design new user onboarding flow',
-    'Create data analytics dashboard',
-    'Implement real-time collaboration tools',
-    'Build API gateway for microservices',
-    'Develop machine learning recommendation engine',
-    'Create cross-platform desktop application',
-    'Implement advanced security protocols',
-    'Build scalable cloud infrastructure',
-    'Develop IoT device management system',
-    'Create interactive learning platform',
-    'Build automated deployment pipeline',
-    'Implement voice recognition features',
-    'Develop virtual reality training module',
-    'Create social media analytics tool',
-    'Build predictive maintenance system',
-    'Implement multi-language support'
-]
+# Load ideas from JSON file
+def load_ideas():
+    try:
+        with open('ideas.json', 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print("Warning: ideas.json not found, using empty list")
+        return []
+    except json.JSONDecodeError:
+        print("Warning: Invalid JSON in ideas.json, using empty list")
+        return []
+
+IDEAS = load_ideas()
 
 @app.route('/')
 def root():
@@ -55,11 +46,11 @@ def root():
 def get_ideas():
     """Get all available ideas for scoring"""
     ideas = []
-    for index, title in enumerate(IDEA_TEMPLATES, 1):
+    for index, idea in enumerate(IDEAS, 1):
         ideas.append({
             "id": index,
-            "title": title,
-            "description": f"A comprehensive solution for {title.lower()}.",
+            "title": idea["title"],
+            "description": idea["description"],
             "score": None
         })
 
