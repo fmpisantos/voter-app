@@ -1,0 +1,20 @@
+{
+  "name": "voter-app",
+  "version": "1.0.0",
+  "description": "A single-user idea ranking application with drag-and-drop functionality",
+  "main": "index.html",
+  "scripts": {
+    "serve": "serve . -p 3000"
+  },
+  "dependencies": {
+    "serve": "^14.2.1"
+  },
+  "keywords": [
+    "voting",
+    "ranking",
+    "drag-and-drop",
+    "ideas"
+  ],
+  "author": "",
+  "license": "MIT"
+}
