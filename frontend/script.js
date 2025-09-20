@@ -24,38 +24,6 @@ async function fetchIdeas() {
     ideas = await response.json();
 }
 
-function createIdeas() {
-    const ideaTemplates = [
-        'Implement AI-powered customer support',
-        'Create mobile app for inventory management',
-        'Develop blockchain-based voting system',
-        'Build automated testing framework',
-        'Design new user onboarding flow',
-        'Create data analytics dashboard',
-        'Implement real-time collaboration tools',
-        'Build API gateway for microservices',
-        'Develop machine learning recommendation engine',
-        'Create cross-platform desktop application',
-        'Implement advanced security protocols',
-        'Build scalable cloud infrastructure',
-        'Develop IoT device management system',
-        'Create interactive learning platform',
-        'Build automated deployment pipeline',
-        'Implement voice recognition features',
-        'Develop virtual reality training module',
-        'Create social media analytics tool',
-        'Build predictive maintenance system',
-        'Implement multi-language support'
-    ];
-
-    ideas = ideaTemplates.map((title, index) => ({
-        id: index + 1,
-        title: title,
-        description: `A comprehensive solution for ${title.toLowerCase()}.`,
-        score: null
-    }));
-}
-
 function renderIdeas() {
     const ideasGrid = document.getElementById('ideasGrid');
     ideasGrid.innerHTML = '';
@@ -74,8 +42,7 @@ function renderIdeas() {
 
         const scoreButtons = [0, 1, 2].map(score => {
             const isActive = idea.score === score;
-            const canAssign = canAssignScore(score);
-            const canRemove = idea.score !== null;
+            const canAssign = canAssignScore(score, idea.id);
             const canChange = idea.score !== null && idea.score !== score;
             const isDisabled = !isActive && !canChange && !canAssign;
 
@@ -106,20 +73,29 @@ function renderIdeas() {
     });
 }
 
-function canAssignScore(score) {
+function canAssignScore(score, ideaId = null) {
     const totalIdeas = ideas.length;
     const currentScores = ideas.map(idea => idea.score);
 
     if (score === 0) return true;
 
+    // If we're checking for a specific idea, temporarily remove its current score from the count
+    let adjustedScores = [...currentScores];
+    if (ideaId !== null) {
+        const ideaIndex = ideas.findIndex(i => i.id === ideaId);
+        if (ideaIndex !== -1) {
+            adjustedScores[ideaIndex] = null; // Temporarily remove current score
+        }
+    }
+
     if (score === 1) {
-        const currentScore1Count = currentScores.filter(s => s === 1).length;
+        const currentScore1Count = adjustedScores.filter(s => s === 1).length;
         const maxScore1Allowed = Math.floor(totalIdeas * MAX_SCORE_1_PERCENTAGE);
         return currentScore1Count < maxScore1Allowed;
     }
 
     if (score === 2) {
-        const currentScore2Count = currentScores.filter(s => s === 2).length;
+        const currentScore2Count = adjustedScores.filter(s => s === 2).length;
         const maxScore2Allowed = Math.floor(totalIdeas * MAX_SCORE_2_PERCENTAGE);
         return currentScore2Count < maxScore2Allowed;
     }
@@ -138,14 +114,8 @@ function assignScore(ideaId, score) {
         return;
     }
 
-    if (idea.score !== null) {
-        idea.score = score;
-        renderIdeas();
-        updateUI();
-        return;
-    }
-
-    if (!canAssignScore(score)) {
+    // Always check constraints when assigning any score (new or changing existing)
+    if (!canAssignScore(score, ideaId)) {
         const totalIdeas = ideas.length;
         if (score === 1) {
             const maxAllowed = Math.floor(totalIdeas * MAX_SCORE_1_PERCENTAGE);

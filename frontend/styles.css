@@ -352,14 +352,11 @@ body {
     transition: margin-left 0.3s ease;
 }
 
-/* Adjust spacing for ranked ideas to avoid overlap with rank badge and drag handle */
 .idea-card.scored .idea-title {
-    margin-left: 64px; /* 16px (left) + 32px (badge) + 16px spacing */
-    font-size: 1rem; /* Smaller font size for scored titles */
 }
 
 .idea-card.scored .idea-description {
-    margin-left: 0; /* Keep description at normal position */
+    margin-left: 0;
 }
 
 .vote-button {
