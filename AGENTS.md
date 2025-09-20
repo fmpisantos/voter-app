@@ -1,58 +1,41 @@
 # AGENTS.md - Voter App Development Guide
 
-## Build/Lint/Test Commands
-- **Build**: `npm run build` or `yarn build`
-- **Development**: `npm run dev` or `yarn dev`
-- **Lint**: `npm run lint` or `yarn lint`
-- **Type Check**: `npm run typecheck` or `yarn typecheck`
-- **Test All**: `npm test` or `yarn test`
-- **Single Test**: `npm test -- <test-file>` or `yarn test <test-file>`
-- **Test Watch**: `npm run test:watch` or `yarn test:watch`
+## Development Commands
+- **Serve**: `npm run serve` (starts dev server on port 3000)
+- **No build/lint/test commands** - this is a vanilla JS project
 
 ## Code Style Guidelines
 
-### Imports
-- Use ES6 imports with named exports preferred
-- Group imports: React, third-party libraries, local components/utilities
-- Absolute imports for src/ directory, relative for same directory
+### JavaScript
+- Use modern ES6+ features (arrow functions, template literals, destructuring)
+- camelCase for variables, functions, and methods
+- PascalCase for constructor functions
+- 4 spaces indentation (following script.js conventions)
+- Single quotes for strings
+- Semicolons required
 
-### Formatting
-- Use Prettier for consistent formatting
-- 2 spaces indentation
-- Single quotes for strings, double for JSX
-- Trailing commas in multiline objects/arrays
+### HTML
+- Semantic HTML5 elements
+- Lowercase tag names and attributes
+- Double quotes for attributes
+- Proper indentation with 4 spaces
 
-### Types
-- Use TypeScript for type safety
-- Define interfaces for data structures (User, Idea, Vote, Round)
-- Avoid `any` type; use proper unions or generics
+### CSS
+- CSS Grid and Flexbox for layouts
+- CSS custom properties for theming
+- BEM-like naming convention (.idea-card, .rank-badge)
+- 4 spaces indentation
+- Group related properties together
 
-### Naming Conventions
-- Components: PascalCase (VotingRound, IdeaCard)
-- Functions: camelCase (calculateScores, filterIdeas)
-- Variables: camelCase (userVotes, currentRound)
-- Constants: UPPER_SNAKE_CASE (MAX_ROUNDS = 3)
-- Files: kebab-case (voting-system.tsx, idea-list.ts)
+### File Organization
+- `index.html`: Main HTML structure
+- `styles.css`: All CSS styles
+- `script.js`: Application logic and DOM manipulation
+- Keep files focused and avoid mixing concerns
 
-### Error Handling
-- Use try/catch for async operations
-- Return Result types or throw custom errors
-- Validate user input on both client and server
-- Log errors with context for debugging
-
-### State Management
-- Use React hooks (useState, useReducer) for local state
-- Context API for global app state
-- Consider Zustand or Redux for complex state
-
-### Testing
-- Unit tests for utilities and hooks
-- Integration tests for components
-- E2E tests for critical user flows
-- Mock external dependencies
-
-### Security
-- Validate all user inputs
-- Sanitize data before storage/display
-- Use HTTPS in production
-- Implement proper authentication/authorization
+### Best Practices
+- Use `const` for immutable variables, `let` for mutable
+- Add event listeners properly with `addEventListener`
+- Use `querySelector` and `querySelectorAll` for DOM selection
+- Handle drag-and-drop with native browser APIs
+- Validate user input before processing
