@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter App - Multi-Round Voting System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1c1c1e;
+            background: #f8fafc;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .idea-container {
+            flex-direction: row;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+            display: flex;
+            gap: clamp(16px, 4vw, 32px);
+            align-items: flex-start;
+            flex-direction: row-reverse;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 40px 0;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            color: #64748b;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 400px;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar {
+            width: 300px;
+            min-width: 280px;
+            max-width: 350px;
+            flex-shrink: 0;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 32px;
+        }
+
+
+
+        .round-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 48px;
+            gap: 8px;
+        }
+
+        .round {
+            padding: 12px 24px;
+            border-radius: 50px;
+            background: #f1f5f9;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .round.active {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            transform: scale(1.05);
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .voters-section {
+            margin-bottom: 48px;
+        }
+
+        .voters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .voter-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .voter-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .voter-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .voter-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .voter-name {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .voter-status {
+            text-align: center;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .voter-status.voted {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .voter-status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .ideas-section {
+            margin-bottom: 48px;
+        }
+
+        .ideas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .idea-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .idea-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border-color: #6366f1;
+        }
+
+        .idea-card.voted {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .ranked-list {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 24px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .ranked-list h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ranked-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ranked-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .ranked-item.voted {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-color: #6366f1;
+        }
+
+        .rank-number {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .ranked-item-content {
+            margin-left: 32px;
+        }
+
+        .ranked-item-title {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .ranked-item-description {
+            color: #64748b;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .idea-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .idea-description {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+
+
+
+
+        .vote-button {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+        }
+
+        .vote-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .vote-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .results-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+
+        .result-card.winner::before {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+        }
+
+        .result-score {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #10b981;
+            margin-top: 12px;
+        }
+
+        .result-card.winner .result-score {
+            color: #f59e0b;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 48px 0;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .control-button {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .control-button:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .control-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .control-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .control-button.secondary {
+            background: white;
+            color: #6366f1;
+            border: 2px solid #6366f1;
+        }
+
+        .control-button.secondary:hover:not(:disabled) {
+            background: #6366f1;
+            color: white;
+        }
+
+        .progress-container {
+            margin: 32px 0;
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 12px;
+            height: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            height: 100%;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 32px 0;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            min-width: 120px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .sidebar {
+                width: 260px;
+                min-width: 240px;
+            }
+
+            .main-content {
+                min-width: 350px;
+            }
+
+            .game-container,
+            .results-section {
+                padding: 32px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 16px;
+                gap: 24px;
+            }
+
+            .sidebar {
+                width: 100%;
+                order: 1;
+                min-width: unset;
+                max-width: unset;
+            }
+
+            .main-content {
+                min-width: unset;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .header p {
+                font-size: 1.1rem;
+            }
+
+            .game-container,
+            .results-section {
+                padding: 24px;
+            }
+
+            .voters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .control-button {
+                width: 100%;
+                max-width: 280px;
+            }
+
+            .ranked-list {
+                padding: 16px;
+                max-height: 60vh;
+            }
+
+
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+                gap: 16px;
+            }
+
+            .header {
+                margin-bottom: 32px;
+                padding: 20px 0;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .game-container,
+            .results-section {
+                padding: 16px;
+            }
+
+            .ranked-list {
+                padding: 12px;
+                max-height: 50vh;
+            }
+
+            .ranked-item {
+                padding: 12px;
+            }
+
+            .control-button {
+                padding: 12px 24px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.4s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="main-content">
+            <div class="header">
+                <h1>🗳️ Voter App</h1>
+                <p>Click ideas to rank them from best to worst. First click = best, second = second best, etc.</p>
+            </div>
+
+            <div class="idea-container">
+                <div class="game-container">
+                    <div class="round-indicator">
+                        <div class="round active" id="round1">Round 1</div>
+                        <div class="round" id="round2">Round 2</div>
+                        <div class="round" id="round3">Round 3</div>
+                    </div>
+
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-number" id="currentRound">1</div>
+                            <div class="stat-label">Current Round</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number" id="ideasRemaining">20</div>
+                            <div class="stat-label">Ideas Remaining</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number" id="votesCast">0</div>
+                            <div class="stat-label">Votes Cast</div>
+                        </div>
+                    </div>
+
+                    <div class="voters-section">
+                        <h2 class="section-title">👥 Voters</h2>
+                        <div class="voters-grid" id="votersGrid">
+                            <!-- Voters will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="ideas-section">
+                        <h2 class="section-title">💡 Ideas to Vote On</h2>
+                        <div class="ideas-grid" id="ideasGrid">
+                            <!-- Ideas will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <button class="control-button" id="startRoundBtn">Start Round 1</button>
+                        <button class="control-button" id="nextRoundBtn" disabled>Next Round</button>
+                        <button class="control-button" id="finishGameBtn" disabled>Finish Game</button>
+                        <button class="control-button secondary" id="resetBtn">Reset Game</button>
+                    </div>
+                </div>
+
+                <div class="sidebar">
+                    <div class="ranked-list">
+                        <h3>🏆 Your Rankings</h3>
+                        <div id="rankedList">
+                            <div class="ranked-item" style="opacity: 0.5;">
+                                <div class="ranked-item-content">
+                                    <div class="ranked-item-title">Click ideas to rank them</div>
+                                    <div class="ranked-item-description">First click = best, second = second best, etc.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h2 class="section-title">🏆 Final Results</h2>
+            <div class="results-grid" id="resultsGrid">
+                <!-- Results will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let currentRound = 1;
+        let voters = [];
+        let ideas = [];
+        let votes = {};
+        let eliminatedIdeas = new Set();
+
+        // Initialize the game
+        function initGame() {
+            createVoters();
+            createIdeas();
+            renderVoters();
+            renderIdeas();
+            updateUI();
+        }
+
+        // Create 5 voters
+        function createVoters() {
+            const names = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'];
+            voters = names.map((name, index) => ({
+                id: index + 1,
+                name: name,
+                hasVoted: false
+            }));
+        }
+
+        // Create 20 ideas
+        function createIdeas() {
+            const ideaTemplates = [
+                'Implement AI-powered customer support',
+                'Create mobile app for inventory management',
+                'Develop blockchain-based voting system',
+                'Build automated testing framework',
+                'Design new user onboarding flow',
+                'Create data analytics dashboard',
+                'Implement real-time collaboration tools',
+                'Build API gateway for microservices',
+                'Develop machine learning recommendation engine',
+                'Create cross-platform desktop application',
+                'Implement advanced security protocols',
+                'Build scalable cloud infrastructure',
+                'Develop IoT device management system',
+                'Create interactive learning platform',
+                'Build automated deployment pipeline',
+                'Implement voice recognition features',
+                'Develop virtual reality training module',
+                'Create social media analytics tool',
+                'Build predictive maintenance system',
+                'Implement multi-language support'
+            ];
+
+            ideas = ideaTemplates.map((title, index) => ({
+                id: index + 1,
+                title: title,
+                description: `A comprehensive solution for ${title.toLowerCase()}.`,
+                totalScore: 0,
+                roundScores: {1: 0, 2: 0, 3: 0},
+                voters: new Set()
+            }));
+        }
+
+        // Render voters
+        function renderVoters() {
+            const votersGrid = document.getElementById('votersGrid');
+            votersGrid.innerHTML = '';
+
+            voters.forEach((voter, index) => {
+                const voterCard = document.createElement('div');
+                voterCard.className = 'voter-card fade-in-up';
+                voterCard.style.animationDelay = `${index * 0.1}s`;
+                voterCard.innerHTML = `
+                    <div class="voter-name">${voter.name}</div>
+                    <div class="voter-status ${voter.hasVoted ? 'voted' : 'pending'}">
+                        ${voter.hasVoted ? '✅ Voted' : '⏳ Pending'}
+                    </div>
+                `;
+                votersGrid.appendChild(voterCard);
+            });
+        }
+
+        // Render ideas
+        function renderIdeas() {
+            const ideasGrid = document.getElementById('ideasGrid');
+            ideasGrid.innerHTML = '';
+
+            const activeIdeas = ideas.filter(idea => !eliminatedIdeas.has(idea.id));
+
+            activeIdeas.forEach((idea, index) => {
+                const ideaCard = document.createElement('div');
+                ideaCard.className = 'idea-card fade-in-up';
+                ideaCard.style.animationDelay = `${index * 0.05}s`;
+                ideaCard.setAttribute('data-idea-id', idea.id);
+                ideaCard.onclick = () => rankIdea(idea.id);
+                ideaCard.innerHTML = `
+                    <div class="idea-title">${idea.title}</div>
+                    <div class="idea-description">${idea.description}</div>
+                    <div style="margin-top: 16px; font-size: 0.875rem; color: #64748b; font-weight: 500;">
+                        Click to rank this idea
+                    </div>
+                `;
+                ideasGrid.appendChild(ideaCard);
+            });
+        }
+
+        // Rank an idea (click-based ranking)
+        function rankIdea(ideaId) {
+            // Find current voter
+            const currentVoter = voters.find(v => !v.hasVoted);
+            if (!currentVoter) {
+                alert('All voters have already voted!');
+                return;
+            }
+
+            // Check if idea already voted by this voter
+            if (votes[currentVoter.id] && votes[currentVoter.id][ideaId]) {
+                return; // Already voted
+            }
+
+            // Get current ranking count for this voter
+            const voterVotes = votes[currentVoter.id] || {};
+            const currentRank = Object.keys(voterVotes).length + 1;
+
+            // Calculate score based on ranking (higher rank = higher score)
+            const score = Math.max(1, 11 - currentRank); // Rank 1 = 10 points, Rank 2 = 9 points, etc.
+
+            // Record vote
+            if (!votes[currentVoter.id]) {
+                votes[currentVoter.id] = {};
+            }
+
+            votes[currentVoter.id][ideaId] = {
+                rank: currentRank,
+                score: score,
+                round: currentRound
+            };
+
+            // Update idea scores
+            const idea = ideas.find(i => i.id === ideaId);
+            idea.roundScores[currentRound] += score;
+            idea.totalScore += score;
+            idea.voters.add(currentVoter.id);
+
+            // Animate idea to ranked list
+            animateIdeaToRanked(ideaId, currentRank);
+
+            // Mark idea as voted for this voter
+            const ideaCard = document.querySelector(`[data-idea-id="${ideaId}"]`);
+            if (ideaCard) {
+                ideaCard.classList.add('voted');
+            }
+
+            updateUI();
+            checkRoundCompletion();
+        }
+
+        // Animate idea moving to ranked list
+        function animateIdeaToRanked(ideaId, rank) {
+            const idea = ideas.find(i => i.id === ideaId);
+            const rankedList = document.getElementById('rankedList');
+
+            // Create ranked item
+            const rankedItem = document.createElement('div');
+            rankedItem.className = 'ranked-item voted slide-in-right';
+            rankedItem.innerHTML = `
+                <div class="rank-number">${rank}</div>
+                <div class="ranked-item-content">
+                    <div class="ranked-item-title">${idea.title}</div>
+                    <div class="ranked-item-description">${idea.description}</div>
+                </div>
+            `;
+
+            // Add to ranked list
+            rankedList.appendChild(rankedItem);
+
+            // Remove placeholder if it exists
+            const placeholder = rankedList.querySelector('.ranked-item[style*="opacity: 0.5"]');
+            if (placeholder) {
+                placeholder.remove();
+            }
+        }
+
+
+
+        // Check if round is complete
+        function checkRoundCompletion() {
+            const currentVoter = voters.find(v => !v.hasVoted);
+            if (!currentVoter) {
+                // All voters have voted
+                document.getElementById('nextRoundBtn').disabled = false;
+                if (currentRound === 3) {
+                    document.getElementById('finishGameBtn').disabled = false;
+                }
+                return;
+            }
+
+            // Check if current voter has ranked all active ideas
+            const activeIdeas = ideas.filter(idea => !eliminatedIdeas.has(idea.id));
+            const voterVotes = votes[currentVoter.id] || {};
+            const votedIdeasCount = Object.keys(voterVotes).length;
+
+            if (votedIdeasCount >= activeIdeas.length) {
+                // Current voter has ranked all ideas, mark as voted
+                currentVoter.hasVoted = true;
+                checkRoundCompletion(); // Recheck for round completion
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            // Update round indicators
+            document.querySelectorAll('.round').forEach((round, index) => {
+                round.classList.toggle('active', index + 1 === currentRound);
+            });
+
+            // Update stats
+            document.getElementById('currentRound').textContent = currentRound;
+            document.getElementById('ideasRemaining').textContent = ideas.length - eliminatedIdeas.size;
+            document.getElementById('votesCast').textContent = voters.filter(v => v.hasVoted).length;
+
+            // Update progress
+            const progress = (voters.filter(v => v.hasVoted).length / voters.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+
+            renderVoters();
+        }
+
+        // Start next round
+        function nextRound() {
+            if (currentRound < 3) {
+                // Eliminate bottom ideas
+                eliminateIdeas();
+
+                // Reset voters for next round
+                voters.forEach(v => v.hasVoted = false);
+
+                // Clear ranked list
+                const rankedList = document.getElementById('rankedList');
+                rankedList.innerHTML = `
+                    <div class="ranked-item" style="opacity: 0.5;">
+                        <div class="ranked-item-content">
+                            <div class="ranked-item-title">Click ideas to rank them</div>
+                            <div class="ranked-item-description">First click = best, second = second best, etc.</div>
+                        </div>
+                    </div>
+                `;
+
+                currentRound++;
+                document.getElementById('nextRoundBtn').disabled = true;
+                document.getElementById('startRoundBtn').textContent = `Start Round ${currentRound}`;
+
+                renderIdeas();
+                updateUI();
+            }
+        }
+
+        // Eliminate ideas based on scores
+        function eliminateIdeas() {
+            const activeIdeas = ideas.filter(idea => !eliminatedIdeas.has(idea.id));
+            const sortedIdeas = activeIdeas.sort((a, b) => a.roundScores[currentRound] - b.roundScores[currentRound]);
+
+            // Eliminate bottom 50% (or at least 1 if only 2 ideas remain)
+            const toEliminate = Math.max(1, Math.floor(sortedIdeas.length / 2));
+
+            for (let i = 0; i < toEliminate; i++) {
+                eliminatedIdeas.add(sortedIdeas[i].id);
+            }
+        }
+
+        // Finish game and show results
+        function finishGame() {
+            document.getElementById('resultsSection').style.display = 'block';
+            renderResults();
+
+            // Hide game controls
+            document.querySelector('.game-container').style.display = 'none';
+        }
+
+        // Render final results
+        function renderResults() {
+            const resultsGrid = document.getElementById('resultsGrid');
+            resultsGrid.innerHTML = '';
+
+            const sortedIdeas = ideas.sort((a, b) => b.totalScore - a.totalScore);
+
+            sortedIdeas.forEach((idea, index) => {
+                const resultCard = document.createElement('div');
+                resultCard.className = `result-card fade-in-up ${index === 0 ? 'winner' : ''}`;
+                resultCard.style.animationDelay = `${index * 0.1}s`;
+                resultCard.innerHTML = `
+                    <div class="idea-title">#${index + 1} - ${idea.title}</div>
+                    <div class="idea-description">${idea.description}</div>
+                    <div class="result-score">${idea.totalScore} points</div>
+                    <div style="margin-top: 12px; font-size: 0.875rem; color: #64748b; font-weight: 500;">
+                        Round scores: ${idea.roundScores[1]} | ${idea.roundScores[2]} | ${idea.roundScores[3]}
+                    </div>
+                    <div style="margin-top: 8px; font-size: 0.8rem; color: #94a3b8;">
+                        Voted by ${idea.voters.size} participant${idea.voters.size !== 1 ? 's' : ''}
+                    </div>
+                `;
+                resultsGrid.appendChild(resultCard);
+            });
+        }
+
+        // Reset game
+        function resetGame() {
+            currentRound = 1;
+            votes = {};
+            eliminatedIdeas = new Set();
+            voters.forEach(v => v.hasVoted = false);
+
+            // Reset idea scores
+            ideas.forEach(idea => {
+                idea.totalScore = 0;
+                idea.roundScores = {1: 0, 2: 0, 3: 0};
+                idea.voters = new Set();
+            });
+
+            // Clear ranked list
+            const rankedList = document.getElementById('rankedList');
+            rankedList.innerHTML = `
+                <div class="ranked-item" style="opacity: 0.5;">
+                    <div class="ranked-item-content">
+                        <div class="ranked-item-title">Click ideas to rank them</div>
+                        <div class="ranked-item-description">First click = best, second = second best, etc.</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('resultsSection').style.display = 'none';
+            document.querySelector('.game-container').style.display = 'block';
+            document.getElementById('nextRoundBtn').disabled = true;
+            document.getElementById('finishGameBtn').disabled = true;
+            document.getElementById('startRoundBtn').textContent = 'Start Round 1';
+
+            renderIdeas();
+            updateUI();
+        }
+
+        // Event listeners
+        document.getElementById('startRoundBtn').addEventListener('click', () => {
+            document.getElementById('startRoundBtn').disabled = true;
+        });
+
+        document.getElementById('nextRoundBtn').addEventListener('click', nextRound);
+        document.getElementById('finishGameBtn').addEventListener('click', finishGame);
+        document.getElementById('resetBtn').addEventListener('click', resetGame);
+
+        // Initialize the game when page loads
+        initGame();
+    </script>
+</body>
+
+</html>
