@@ -102,8 +102,39 @@ API/
 └── README.md         # This file
 ```
 
+## Deployment
+
+### Development
+```bash
+python main.py
+```
+
+### Production
+```bash
+# Using deployment script
+./deploy.sh
+
+# Or manually
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+export ENV=production
+export DEBUG=False
+python main.py
+```
+
+### Environment Variables
+Create a `.env` file based on `.env.example`:
+```bash
+ENV=production
+DEBUG=False
+HOST=0.0.0.0
+PORT=5000
+```
+
 ## Technologies
 
 - **Flask**: Web framework
 - **Flask-CORS**: Cross-origin resource sharing
+- **python-dotenv**: Environment variable management
 - **Python 3.8+**: Runtime environment

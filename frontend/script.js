@@ -1,13 +1,27 @@
 let ideas = [];
 let hasSubmitted = false;
 
-const MAX_SCORE_2_PERCENTAGE = 0.4; 
+const MAX_SCORE_2_PERCENTAGE = 0.4;
 const MAX_SCORE_1_PERCENTAGE = 0.3;
+const API_BASE_URL = 'http://localhost:8080';
 
-function initVoting() {
-    createIdeas();
-    renderIdeas();
-    updateUI();
+async function initVoting() {
+    try {
+        await fetchIdeas();
+        renderIdeas();
+        updateUI();
+    } catch (error) {
+        console.error('Error initializing voting:', error);
+        alert('Error loading ideas. Please refresh the page.');
+    }
+}
+
+async function fetchIdeas() {
+    const response = await fetch(`${API_BASE_URL}/ideas`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch ideas');
+    }
+    ideas = await response.json();
 }
 
 function createIdeas() {
@@ -76,7 +90,6 @@ function renderIdeas() {
         }).join('');
 
         ideaCard.innerHTML = `
-            ${idea.score !== null ? `<div class="score-badge">${idea.score}</div>` : ''}
             <div class="idea-title">${idea.title}</div>
             <div class="idea-description">${idea.description}</div>
             <div class="score-controls">
@@ -253,7 +266,7 @@ function updateRemainingRankedCards() {
     });
 }
 
-function submitVote() {
+async function submitVote() {
     const scoredCount = ideas.filter(idea => idea.score !== null).length;
     const totalIdeas = ideas.length;
 
@@ -267,12 +280,29 @@ function submitVote() {
         return;
     }
 
-    const scores = ideas.map(idea => ({ ideaId: idea.id, score: idea.score }));
-    console.log('Submitting scores:', scores);
-    alert('Vote submitted successfully! (This is a placeholder - actual server submission not implemented)');
+    try {
+        const response = await fetch(`${API_BASE_URL}/submit-vote`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ideas: ideas })
+        });
 
-    hasSubmitted = true;
-    updateUI();
+        const result = await response.json();
+
+        if (response.ok) {
+            console.log('Vote submitted successfully:', result);
+            alert('Vote submitted successfully!');
+            hasSubmitted = true;
+            updateUI();
+        } else {
+            alert(`Error submitting vote: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error submitting vote:', error);
+        alert('Error submitting vote. Please try again.');
+    }
 }
 
 function resetScoring() {
@@ -320,7 +350,78 @@ function updateScoreCounts() {
 
 
 
+async function fetchResults() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/results`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch results');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching results:', error);
+        throw error;
+    }
+}
+
+async function toggleResults() {
+    const resultsSection = document.getElementById('resultsSection');
+    const viewResultsBtn = document.getElementById('viewResultsBtn');
+
+    if (resultsSection.style.display === 'none') {
+        try {
+            const results = await fetchResults();
+            displayResults(results);
+            resultsSection.style.display = 'block';
+            viewResultsBtn.textContent = 'Hide Results';
+        } catch (error) {
+            alert('Error loading results. Please try again.');
+        }
+    } else {
+        resultsSection.style.display = 'none';
+        viewResultsBtn.textContent = 'View Results';
+    }
+}
+
+function displayResults(results) {
+    document.getElementById('totalVotes').textContent = results.total_votes;
+    document.getElementById('avgScore2').textContent = results.score_distributions[2] || 0;
+    document.getElementById('avgScore1').textContent = results.score_distributions[1] || 0;
+    document.getElementById('avgScore0').textContent = results.score_distributions[0] || 0;
+
+    const averageScoresList = document.getElementById('averageScoresList');
+    averageScoresList.innerHTML = '';
+
+    if (Object.keys(results.average_scores).length === 0) {
+        averageScoresList.innerHTML = '<p>No votes submitted yet.</p>';
+        return;
+    }
+
+    const sortedIdeas = Object.entries(results.average_scores)
+        .sort(([,a], [,b]) => b - a)
+        .map(([id, avg]) => {
+            const idea = ideas.find(i => i.id == id);
+            return {
+                id: parseInt(id),
+                title: idea ? idea.title : `Idea ${id}`,
+                average: avg
+            };
+        });
+
+    sortedIdeas.forEach(idea => {
+        const ideaElement = document.createElement('div');
+        ideaElement.className = 'average-score-item';
+        ideaElement.innerHTML = `
+            <div class="idea-title">${idea.title}</div>
+            <div class="average-score">${idea.average.toFixed(2)}</div>
+        `;
+        averageScoresList.appendChild(ideaElement);
+    });
+}
+
+
+
 document.getElementById('submitVoteBtn').addEventListener('click', submitVote);
 document.getElementById('resetBtn').addEventListener('click', resetScoring);
+document.getElementById('viewResultsBtn').addEventListener('click', toggleResults);
 
-initVoting();
+initVoting().catch(console.error);

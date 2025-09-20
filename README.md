@@ -83,6 +83,78 @@ API will be available at `http://localhost:5000`
 
 ## Deployment
 
-- **Frontend**: Can be served as static files from any web server
-- **Backend**: Deploy Flask app to any Python hosting service
-- **Database**: Currently uses in-memory storage (can be extended with database integration)
+### Quick Deployment
+
+#### Frontend
+```bash
+cd frontend
+./deploy.sh
+```
+Upload all files to your static hosting provider (Netlify, Vercel, GitHub Pages, etc.)
+
+#### API
+```bash
+cd API
+./deploy.sh
+```
+Deploy to any Python hosting service (Heroku, DigitalOcean, AWS, etc.)
+
+### Manual Deployment
+
+#### Frontend
+1. **Static Hosting**: Upload contents of `frontend/` directory to your web server
+2. **Update API URL**: Edit `API_BASE_URL` in `frontend/script.js` for production
+3. **CORS Configuration**: Update API's CORS settings for your domain
+
+#### API
+1. **Environment Setup**:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+2. **Production Configuration**:
+   ```bash
+   export ENV=production
+   export DEBUG=False
+   export HOST=0.0.0.0
+   export PORT=5000
+   ```
+
+3. **Start Server**:
+   ```bash
+   python main.py
+   ```
+
+### Production Checklist
+
+- [ ] Update `API_BASE_URL` in frontend for production API endpoint
+- [ ] Configure CORS in API for your domain
+- [ ] Set `ENV=production` and `DEBUG=False` for API
+- [ ] Test frontend-backend communication
+- [ ] Ensure HTTPS is enabled for production
+- [ ] Set up proper logging and monitoring
+- [ ] Configure backup strategy for vote data (currently in-memory)
+
+### Hosting Recommendations
+
+- **Frontend**: Netlify, Vercel, GitHub Pages, Cloudflare Pages
+- **API**: Heroku, DigitalOcean App Platform, AWS Elastic Beanstalk, Google App Engine
+- **Database**: For production, consider PostgreSQL or MongoDB for persistent storage
+
+## Environment Variables
+
+### API (.env)
+```bash
+ENV=production
+DEBUG=False
+HOST=0.0.0.0
+PORT=5000
+```
+
+### Frontend
+Update `API_BASE_URL` in `script.js`:
+```javascript
+const API_BASE_URL = 'https://your-api-domain.com';
+```

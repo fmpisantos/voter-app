@@ -2,9 +2,12 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import json
 from datetime import datetime
+from config import Config
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=Config.CORS_ORIGINS)
+
+submitted_votes = []
 
 IDEA_TEMPLATES = [
     'Implement AI-powered customer support',
@@ -97,23 +100,56 @@ def submit_vote():
     total_score = sum(idea.get('score', 0) for idea in ideas)
 
     result = {
-        "id": 1,
+        "id": len(submitted_votes) + 1,
         "ideas": ideas,
         "submitted_at": datetime.utcnow().isoformat() + "Z",
         "total_score": total_score,
         "score_distribution": score_counts
     }
 
+    submitted_votes.append(result)
+
     return jsonify(result)
 
 @app.route('/results', methods=['GET'])
 def get_results():
-    """Get voting results (placeholder)"""
+    """Get voting results"""
+    if not submitted_votes:
+        return jsonify({
+            "total_votes": 0,
+            "average_scores": {},
+            "score_distributions": {},
+            "recent_votes": []
+        })
+
+    total_votes = len(submitted_votes)
+
+    idea_scores = {}
+    score_distributions = {0: 0, 1: 0, 2: 0}
+
+    for vote in submitted_votes:
+        for idea in vote['ideas']:
+            idea_id = idea['id']
+            score = idea.get('score', 0)
+
+            if idea_id not in idea_scores:
+                idea_scores[idea_id] = []
+            idea_scores[idea_id].append(score)
+
+            score_distributions[score] += 1
+
+    average_scores = {}
+    for idea_id, scores in idea_scores.items():
+        average_scores[idea_id] = sum(scores) / len(scores)
+
+    recent_votes = submitted_votes[-5:] if len(submitted_votes) > 5 else submitted_votes
+
     return jsonify({
-        "message": "Results endpoint - to be implemented",
-        "total_votes": 0,
-        "average_scores": {}
+        "total_votes": total_votes,
+        "average_scores": average_scores,
+        "score_distributions": score_distributions,
+        "recent_votes": recent_votes
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=Config.DEBUG, host=Config.HOST, port=Config.PORT)
