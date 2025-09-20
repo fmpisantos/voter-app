@@ -93,7 +93,7 @@ async function handleEmailSubmit(event) {
 
 function loadSavedScores(savedScores) {
     savedScores.forEach(savedScore => {
-        const idea = ideas.find(i => i.id === savedScore.ideaId);
+        const idea = ideas.find(i => i.id === savedScore.id);
         if (idea) {
             idea.score = savedScore.score;
         }
@@ -129,7 +129,8 @@ async function initVoting() {
 }
 
 async function fetchIdeas() {
-    const response = await fetch(`${API_BASE_URL}/ideas`);
+    const url = userEmail ? `${API_BASE_URL}/ideas?email=${encodeURIComponent(userEmail)}` : `${API_BASE_URL}/ideas`;
+    const response = await fetch(url);
     if (!response.ok) {
         throw new Error('Failed to fetch ideas');
     }
