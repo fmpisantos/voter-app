@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import json
+import re
 from datetime import datetime
 from config import Config
 
@@ -8,6 +9,12 @@ app = Flask(__name__)
 CORS(app, origins=Config.CORS_ORIGINS)
 
 submitted_votes = []
+user_scores = {}
+
+valid_emails = [
+    "filipesantosdev@gmail.com",
+    "pipas.sporting@gmail.com"
+]
 
 IDEA_TEMPLATES = [
     'Implement AI-powered customer support',
@@ -150,6 +157,61 @@ def get_results():
         "score_distributions": score_distributions,
         "recent_votes": recent_votes
     })
+
+@app.route('/validate-email', methods=['POST'])
+def validate_email():
+    """Validate email address"""
+    data = request.get_json()
+
+    if not data or 'email' not in data:
+        return jsonify({"valid": False, "error": "Email is required"}), 400
+
+    email = data['email'].strip()
+
+    # Basic email validation
+    import re
+    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+    if not re.match(email_regex, email):
+        return jsonify({"valid": False, "error": "Invalid email format"}), 400
+
+    # Additional validation (you can add more sophisticated checks here)
+    if len(email) > 254:  # RFC 5321 limit
+        return jsonify({"valid": False, "error": "Email address too long"}), 400
+
+    if not email in valid_emails:
+        return jsonify({"valid": False, "error": "Wrong email address check for typos"}), 400
+
+    return jsonify({"valid": True})
+
+@app.route('/user-scores', methods=['GET'])
+def get_user_scores():
+    """Get saved scores for a user"""
+    email = request.args.get('email')
+
+    if not email:
+        return jsonify({"scores": []}), 400
+
+    email = email.strip().lower()
+    scores = user_scores.get(email, [])
+
+    return jsonify({"scores": scores})
+
+@app.route('/save-scores', methods=['POST'])
+def save_user_scores():
+    """Save user scores (called automatically when submitting votes)"""
+    data = request.get_json()
+
+    if not data or 'email' not in data or 'ideas' not in data:
+        return jsonify({"success": False, "error": "Email and ideas are required"}), 400
+
+    email = data['email'].strip().lower()
+    ideas = data['ideas']
+
+    # Save the scores for this user
+    user_scores[email] = ideas
+
+    return jsonify({"success": True})
 
 if __name__ == '__main__':
     app.run(debug=Config.DEBUG, host=Config.HOST, port=Config.PORT)

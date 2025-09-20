@@ -10,9 +10,36 @@
 </head>
 
 <body>
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Welcome to Idea Scoring</h2>
+                <p>Please enter your email address to continue</p>
+            </div>
+            <div class="modal-body">
+                <form id="emailForm">
+                    <div class="form-group">
+                        <label for="userEmail">Email Address:</label>
+                        <input type="email" id="userEmail" placeholder="your.email@example.com" required>
+                        <div id="emailError" class="error-message" style="display: none;"></div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="modal-button primary">Continue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="main-content">
             <div class="header">
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <div class="user-email">
+                        <span class="user-label">👤</span>
+                        <span id="displayEmail"></span>
+                    </div>
+                </div>
                 <h1>🗳️ Idea Scoring</h1>
                 <p>Assign scores (0-2) to all ideas. Score 2: max 40% of ideas, Score 1: max 30% of ideas, Score 0: remaining ideas. Click current score to remove, click different score to change.</p>
             </div>

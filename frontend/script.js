@@ -1,9 +1,131 @@
 let ideas = [];
 let hasSubmitted = false;
+let userEmail = null;
 
 const MAX_SCORE_2_PERCENTAGE = 0.4;
 const MAX_SCORE_1_PERCENTAGE = 0.3;
 const API_BASE_URL = 'http://localhost:8080';
+
+function showEmailModal() {
+    const modal = document.getElementById('emailModal');
+    modal.classList.add('show');
+}
+
+function hideEmailModal() {
+    const modal = document.getElementById('emailModal');
+    modal.classList.remove('show');
+}
+
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+async function validateUserEmail(email) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/validate-email`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email })
+        });
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error validating email:', error);
+        return { valid: false, error: 'Network error. Please try again.' };
+    }
+}
+
+async function loadUserScores(email) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/user-scores?email=${encodeURIComponent(email)}`);
+        if (response.ok) {
+            const data = await response.json();
+            return data.scores || [];
+        }
+        return [];
+    } catch (error) {
+        console.error('Error loading user scores:', error);
+        return [];
+    }
+}
+
+async function handleEmailSubmit(event) {
+    event.preventDefault();
+
+    const emailInput = document.getElementById('userEmail');
+    const emailError = document.getElementById('emailError');
+    const submitButton = event.target.querySelector('button[type="submit"]');
+
+    const email = emailInput.value.trim();
+
+    if (!email) {
+        emailError.textContent = 'Please enter an email address.';
+        emailError.style.display = 'block';
+        return;
+    }
+
+    if (!validateEmail(email)) {
+        emailError.textContent = 'Please enter a valid email address.';
+        emailError.style.display = 'block';
+        return;
+    }
+
+    emailError.style.display = 'none';
+    submitButton.disabled = true;
+    submitButton.textContent = 'Validating...';
+
+    const validationResult = await validateUserEmail(email);
+
+    if (validationResult.valid) {
+        userEmail = email;
+        hideEmailModal();
+
+        // Show user email in the top left
+        showUserEmail(email);
+
+        const savedScores = await loadUserScores(email);
+        if (savedScores.length > 0) {
+            loadSavedScores(savedScores);
+        }
+
+        await initVoting();
+    } else {
+        emailError.textContent = validationResult.error || 'Invalid email address.';
+        emailError.style.display = 'block';
+        submitButton.disabled = false;
+        submitButton.textContent = 'Continue';
+    }
+}
+
+function loadSavedScores(savedScores) {
+    savedScores.forEach(savedScore => {
+        const idea = ideas.find(i => i.id === savedScore.ideaId);
+        if (idea) {
+            idea.score = savedScore.score;
+        }
+    });
+}
+
+function showUserEmail(email) {
+    const userInfo = document.getElementById('userInfo');
+    const displayEmail = document.getElementById('displayEmail');
+
+    displayEmail.textContent = email;
+    userInfo.style.display = 'block';
+}
+
+function hideUserEmail() {
+    const userInfo = document.getElementById('userInfo');
+    userInfo.style.display = 'none';
+}
+
+async function initApp() {
+    showEmailModal();
+}
 
 async function initVoting() {
     try {
@@ -256,13 +378,28 @@ async function submitVote() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ ideas: ideas })
+            body: JSON.stringify({ email: userEmail, ideas: ideas })
         });
 
         const result = await response.json();
 
         if (response.ok) {
             console.log('Vote submitted successfully:', result);
+
+            // Also save the scores for this user
+            try {
+                await fetch(`${API_BASE_URL}/save-scores`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: userEmail, ideas: ideas })
+                });
+            } catch (saveError) {
+                console.error('Error saving scores:', saveError);
+                // Don't show error to user since vote was successful
+            }
+
             alert('Vote submitted successfully!');
             hasSubmitted = true;
             updateUI();
@@ -388,5 +525,6 @@ function displayResults(results) {
 
 
 document.getElementById('submitVoteBtn').addEventListener('click', submitVote);
+document.getElementById('emailForm').addEventListener('submit', handleEmailSubmit);
 
-initVoting().catch(console.error);
+initApp();
