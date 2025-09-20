@@ -125,6 +125,7 @@ def check_all_users_voted():
 
     return all_voted
 
+
 def check_all_users_voted_final():
     """Check if all valid users have submitted their final votes"""
     print("🔍 check_all_users_voted_final() called")
@@ -133,7 +134,8 @@ def check_all_users_voted_final():
 
     # Check for user vote files
     for valid_email in valid_emails:
-        user_file = f'user_votes_{valid_email.replace("@", "_").replace(".", "_")}.json'
+        user_file = f'user_votes_{valid_email.replace(
+            "@", "_").replace(".", "_")}.json'
         if os.path.exists(user_file):
             voted_users.add(valid_email.lower())
             print(f"    ✅ Found votes from: {valid_email}")
@@ -148,9 +150,11 @@ def check_all_users_voted_final():
     if all_voted:
         print(f"🎉 ALL USERS HAVE VOTED! Ready for normalization.")
     else:
-        print(f"⏳ WAITING - {len(voted_users)}/{len(valid_emails)} users have voted")
+        print(f"⏳ WAITING - {len(voted_users)
+                             }/{len(valid_emails)} users have voted")
 
     return all_voted
+
 
 def normalize_all_scores():
     """Normalize all user scores and calculate final idea scores"""
@@ -159,7 +163,8 @@ def normalize_all_scores():
     # Load all user vote files
     all_user_votes = {}
     for valid_email in valid_emails:
-        user_file = f'user_votes_{valid_email.replace("@", "_").replace(".", "_")}.json'
+        user_file = f'user_votes_{valid_email.replace(
+            "@", "_").replace(".", "_")}.json'
         if os.path.exists(user_file):
             with open(user_file, 'r') as f:
                 user_data = json.load(f)
@@ -186,6 +191,7 @@ def normalize_all_scores():
                                     user_total += score
         user_totals[email] = user_total
         total_all_scores += user_total
+    total_all_scores /= len(valid_emails)
 
     print(f"📈 Total scores across all users: {total_all_scores}")
     print(f"👥 User totals: {user_totals}")
@@ -194,7 +200,7 @@ def normalize_all_scores():
     user_normalizations = {}
     for email, user_total in user_totals.items():
         if total_all_scores > 0:
-            user_normalizations[email] = user_total / total_all_scores
+            user_normalizations[email] = total_all_scores / user_total
         else:
             user_normalizations[email] = 1.0
 
@@ -378,7 +384,8 @@ def submit_all_votes():  # type: ignore
     }
 
     # Save to a user votes file
-    user_votes_file = f'user_votes_{email.replace("@", "_").replace(".", "_")}.json'
+    user_votes_file = f'user_votes_{
+        email.replace("@", "_").replace(".", "_")}.json'
     with open(user_votes_file, 'w') as f:
         json.dump(user_vote_data, f, indent=2)
 
@@ -397,6 +404,7 @@ def submit_all_votes():  # type: ignore
         "message": "Votes submitted successfully. Waiting for other users.",
         "normalized": False
     })
+
 
 @app.route('/submit-vote', methods=['POST'])
 def submit_vote():
@@ -662,6 +670,7 @@ def save_user_scores():
 
     return jsonify({"success": True, "round": round_num})
 
+
 @app.route('/final-results', methods=['GET'])
 def get_final_results():
     """Get the final normalized results"""
@@ -671,6 +680,7 @@ def get_final_results():
         return jsonify(final_results)
     except FileNotFoundError:
         return jsonify({"error": "Final results not available yet"}), 404
+
 
 @app.route('/user-status', methods=['GET'])
 def get_user_status():
@@ -687,13 +697,15 @@ def get_user_status():
         "has_voted": has_voted
     })
 
+
 @app.route('/all-users-status', methods=['GET'])
 def get_all_users_status():
     """Get voting status for all users"""
     users_status = []
 
     for email in valid_emails:
-        user_file = f'user_votes_{email.replace("@", "_").replace(".", "_")}.json'
+        user_file = f'user_votes_{email.replace(
+            "@", "_").replace(".", "_")}.json'
         has_voted = os.path.exists(user_file)
 
         users_status.append({

@@ -709,10 +709,8 @@ body {
     padding: 24px;
     border: 1px solid var(--color-border);
     box-shadow: 0 2px 8px var(--shadow-light);
-    display: flex;
-    align-items: center;
-    gap: 20px;
     transition: all 0.3s ease;
+    margin-bottom: 16px;
 }
 
 .final-result-item:hover {
@@ -721,6 +719,8 @@ body {
     border-color: var(--color-accent);
 }
 
+/* Rank badge removed from final results - keeping for potential future use */
+/*
 .rank-badge {
     width: 50px;
     height: 50px;
@@ -735,9 +735,10 @@ body {
     box-shadow: 0 2px 8px var(--shadow-secondary-hover);
     flex-shrink: 0;
 }
+*/
 
 .idea-content {
-    flex: 1;
+    /* No longer needs flex: 1 since rank badge is removed */
 }
 
 .idea-title {
@@ -1349,6 +1350,8 @@ body {
     position: relative;
 }
 
+/* Rank badge styling for final results - commented out since rank badges are removed */
+/*
 .idea-card.final-result .rank-badge {
     position: absolute;
     top: -12px;
@@ -1362,6 +1365,7 @@ body {
     box-shadow: 0 4px 12px var(--shadow-primary);
     z-index: 10;
 }
+*/
 
 .final-score {
     font-size: 1.4rem;

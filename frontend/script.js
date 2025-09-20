@@ -159,7 +159,6 @@ async function showFinalResults() {
             <div class="final-results-list">
                 ${Array.isArray(finalResults) ? finalResults.map((idea, index) => `
                     <div class="final-result-item">
-                        <div class="rank-badge">#${index + 1}</div>
                         <div class="idea-content">
                             <div class="idea-title">${idea.title}</div>
                             <div class="idea-description">${idea.description}</div>
