@@ -335,20 +335,17 @@ async function fetchResults() {
 
 async function toggleResults() {
     const resultsSection = document.getElementById('resultsSection');
-    const viewResultsBtn = document.getElementById('viewResultsBtn');
 
     if (resultsSection.style.display === 'none') {
         try {
             const results = await fetchResults();
             displayResults(results);
             resultsSection.style.display = 'block';
-            viewResultsBtn.textContent = 'Hide Results';
         } catch (error) {
             alert('Error loading results. Please try again.');
         }
     } else {
         resultsSection.style.display = 'none';
-        viewResultsBtn.textContent = 'View Results';
     }
 }
 
@@ -391,7 +388,5 @@ function displayResults(results) {
 
 
 document.getElementById('submitVoteBtn').addEventListener('click', submitVote);
-document.getElementById('resetBtn').addEventListener('click', resetScoring);
-document.getElementById('viewResultsBtn').addEventListener('click', toggleResults);
 
 initVoting().catch(console.error);
