@@ -42,10 +42,11 @@
 
 ### API Endpoints
 - `GET /ideas` - Fetch ideas with optional user scores
-- `POST /submit-final-results` - Submit final accumulated scores (simplified)
+- `POST /submit-final-results` - Submit final accumulated scores from frontend
+- `POST /submit-all-votes` - Submit scores (legacy, round-by-round)
 - `POST /submit-vote` - Submit scores (legacy, round-by-round)
 - `POST /end-round` - Manual round advancement (70% survival)
-- `GET /final-results` - Get normalized final results
+- `GET /final-results` - Get combined final results
 - `GET /results` - Voting results and statistics
 - `GET /round-info` - Current round status
 - `GET /user-status` - Check if specific user has voted

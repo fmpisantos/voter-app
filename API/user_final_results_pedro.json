@@ -1,0 +1,51 @@
+{
+  "email": "pedro",
+  "finalResults": [
+    {
+      "id": 2,
+      "title": "Idea 2",
+      "description": "Idea 2",
+      "round1Score": 2,
+      "round2Score": 1,
+      "round3Score": 2,
+      "finalScore": 5
+    },
+    {
+      "id": 3,
+      "title": "Idea 3",
+      "description": "Idea 3",
+      "round1Score": 1,
+      "round2Score": 1,
+      "round3Score": 0,
+      "finalScore": 2
+    },
+    {
+      "id": 4,
+      "title": "Idea 4",
+      "description": "Idea 4",
+      "round1Score": 1,
+      "round2Score": 1,
+      "round3Score": 0,
+      "finalScore": 2
+    },
+    {
+      "id": 1,
+      "title": "Idea 1",
+      "description": "Idea 1",
+      "round1Score": 0,
+      "round2Score": 0,
+      "round3Score": 0,
+      "finalScore": 0
+    },
+    {
+      "id": 5,
+      "title": "Idea 5",
+      "description": "Idea 5",
+      "round1Score": 0,
+      "round2Score": 0,
+      "round3Score": 0,
+      "finalScore": 0
+    }
+  ],
+  "submitted_at": "2025-09-20T23:13:37.330252Z"
+}

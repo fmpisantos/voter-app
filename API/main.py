@@ -406,6 +406,125 @@ def submit_all_votes():  # type: ignore
     })
 
 
+@app.route('/submit-final-results', methods=['POST'])
+def submit_final_results():  # type: ignore
+    """Submit final accumulated results from frontend"""
+    data = request.get_json()
+
+    if not data or 'email' not in data or 'finalResults' not in data:
+        return jsonify({"error": "Email and finalResults data required"}), 400
+
+    email = data['email'].strip().lower()
+    final_results = data['finalResults']
+
+    if not final_results:
+        return jsonify({"error": "No final results data provided"}), 400
+
+    print(f"📥 Received final results from user {email}")
+
+    # Store user final results data
+    user_final_data = {
+        "email": email,
+        "finalResults": final_results,
+        "submitted_at": datetime.utcnow().isoformat() + "Z"
+    }
+
+    # Save to a user final results file
+    user_final_file = f'user_final_results_{email.replace("@", "_").replace(".", "_")}.json'
+    with open(user_final_file, 'w') as f:
+        json.dump(user_final_data, f, indent=2)
+
+    print(f"💾 Saved user final results to {user_final_file}")
+
+    # Check if all users have submitted final results
+    if check_all_users_final_results():
+        print("🎯 All users have submitted final results! Storing final results...")
+        store_final_results()
+        return jsonify({
+            "message": "Final results submitted successfully. All users completed.",
+            "completed": True
+        })
+
+    return jsonify({
+        "message": "Final results submitted successfully. Waiting for other users.",
+        "completed": False
+    })
+
+
+def check_all_users_final_results():
+    """Check if all valid users have submitted their final results"""
+    print("🔍 check_all_users_final_results() called")
+
+    submitted_users = set()
+
+    # Check for user final results files
+    for valid_email in valid_emails:
+        user_file = f'user_final_results_{valid_email.replace("@", "_").replace(".", "_")}.json'
+        if os.path.exists(user_file):
+            submitted_users.add(valid_email.lower())
+            print(f"    ✅ Found final results from: {valid_email}")
+
+    print(f"📈 Final results summary:")
+    print(f"  - Valid submissions found: {len(submitted_users)}")
+    print(f"  - Required submissions: {len(valid_emails)}")
+    print(f"  - Users who submitted: {list(submitted_users)}")
+
+    all_submitted = len(submitted_users) == len(valid_emails)
+
+    if all_submitted:
+        print(f"🎉 ALL USERS HAVE SUBMITTED FINAL RESULTS!")
+    else:
+        print(f"⏳ WAITING - {len(submitted_users)}/{len(valid_emails)} users have submitted")
+
+    return all_submitted
+
+
+def store_final_results():
+    """Store the final accumulated results from all users"""
+    print("🔄 Storing final results...")
+
+    # Load all user final results
+    all_final_results = {}
+    for valid_email in valid_emails:
+        user_file = f'user_final_results_{valid_email.replace("@", "_").replace(".", "_")}.json'
+        if os.path.exists(user_file):
+            with open(user_file, 'r') as f:
+                user_data = json.load(f)
+                all_final_results[valid_email] = user_data['finalResults']
+
+    print(f"📊 Loaded final results from {len(all_final_results)} users")
+
+    # Combine results from all users
+    combined_results = {}
+
+    for email, user_results in all_final_results.items():
+        for result in user_results:
+            idea_id = result['id']
+            if idea_id not in combined_results:
+                combined_results[idea_id] = {
+                    'id': result['id'],
+                    'title': result['title'],
+                    'description': result['description'],
+                    'final_score': 0,
+                    'user_scores': {}
+                }
+
+            # Add this user's final score for this idea
+            combined_results[idea_id]['final_score'] += result['finalScore'] or 0
+            combined_results[idea_id]['user_scores'][email] = result['finalScore'] or 0
+
+    # Convert to list and sort by final score
+    final_results_list = list(combined_results.values())
+    final_results_list.sort(key=lambda x: x['final_score'], reverse=True)
+
+    # Save combined final results
+    with open('final_results.json', 'w') as f:
+        json.dump(final_results_list, f, indent=2)
+
+    print("💾 Saved combined final results to final_results.json")
+    print("🏆 Final results storage complete!")
+
+
 @app.route('/submit-vote', methods=['POST'])
 def submit_vote():
     """Submit scored ideas"""

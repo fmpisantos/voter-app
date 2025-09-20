@@ -365,14 +365,14 @@ function renderFinalResults() {
         resultCard.className = 'idea-card final-result';
 
         const scoreBreakdown = result.finalScore > 0 ?
-            `<small>Round 1: ${result.round1Score} | Round 2: ${result.round2Score} | Round 3: ${result.round3Score}</small>` :
+            `<small>Round 1: ${result.round1Score || 0} | Round 2: ${result.round2Score || 0} | Round 3: ${result.round3Score || 0}</small>` :
             `<small>Eliminated in Round 1</small>`;
 
         resultCard.innerHTML = `
             <div class="idea-title">${result.title}</div>
             <div class="idea-description">${result.description}</div>
             <div class="final-score">
-                <strong>Final Score: ${result.finalScore}</strong>
+                <strong>Final Score: ${result.finalScore || 0}</strong>
                 <br>${scoreBreakdown}
             </div>
         `;
@@ -558,8 +558,6 @@ function submitVote() {
         return;
     }
 
-    console.log(finalResults);
-
     const currentGroup = votingGroups[currentGroupIndex];
     const currentIdeas = currentGroup.ideas;
     const scoredCount = currentIdeas.filter(idea => idea.score !== null).length;
@@ -618,7 +616,7 @@ function submitVote() {
             currentGroupIndex++;
         } else {
             // Round 3 completed - send final results to server and show final results
-            sendAllVotesToServer();
+            sendFinalResultsToServer();
             return;
         }
     }
@@ -639,10 +637,28 @@ function processRoundResults() {
     const currentIdeas = currentGroup.ideas;
 
     if (currentRound === 1) {
-        // Round 1: Store scores for grouping
+        // Round 1: Store scores for grouping and initialize finalResults
         currentIdeas.forEach(idea => {
             if (idea.score !== null) {
                 idea.cumulativeScore = idea.score;
+
+                // Initialize or update finalResults
+                let finalResult = finalResults.find(fr => fr.id === idea.id);
+                if (!finalResult) {
+                    finalResult = {
+                        id: idea.id,
+                        title: idea.title,
+                        description: idea.description,
+                        round1Score: idea.score,
+                        round2Score: 0,
+                        round3Score: 0,
+                        finalScore: idea.score
+                    };
+                    finalResults.push(finalResult);
+                } else {
+                    finalResult.round1Score = idea.score;
+                    finalResult.finalScore = idea.score;
+                }
             }
         });
     } else if (currentRound === 2) {
@@ -653,6 +669,13 @@ function processRoundResults() {
                 const originalIdea = round1Results.find(r => r.id === idea.id);
                 const round1Score = originalIdea ? originalIdea.round1Score : 0;
                 idea.cumulativeScore = round1Score + idea.score;
+
+                // Update finalResults
+                const finalResult = finalResults.find(fr => fr.id === idea.id);
+                if (finalResult) {
+                    finalResult.round2Score = idea.score;
+                    finalResult.finalScore = round1Score + idea.score;
+                }
             }
         });
     } else if (currentRound === 3) {
@@ -660,9 +683,19 @@ function processRoundResults() {
         currentIdeas.forEach(idea => {
             if (idea.score !== null) {
                 idea.cumulativeScore = (idea.cumulativeScore || 0) + idea.score;
+
+                // Update finalResults
+                const finalResult = finalResults.find(fr => fr.id === idea.id);
+                if (finalResult) {
+                    finalResult.round3Score = idea.score;
+                    finalResult.finalScore = (finalResult.finalScore || 0) + idea.score;
+                }
             }
         });
     }
+
+    // Sort finalResults by finalScore descending
+    finalResults.sort((a, b) => b.finalScore - a.finalScore);
 }
 
 function createRound2Groups() {
@@ -715,73 +748,34 @@ function saveRound2Results() {
     });
 }
 
-async function sendAllVotesToServer() {
+async function sendFinalResultsToServer() {
     try {
-        // Collect all voting data from all rounds
-        const allVotesData = {
+        // Send the final accumulated results
+        const finalResultsData = {
             email: userEmail,
-            rounds: []
+            finalResults: finalResults.map(result => ({
+                id: result.id,
+                title: result.title,
+                description: result.description,
+                round1Score: result.round1Score || 0,
+                round2Score: result.round2Score || 0,
+                round3Score: result.round3Score || 0,
+                finalScore: result.finalScore || 0
+            }))
         };
 
-        // Add Round 1 data
-        allVotesData.rounds.push({
-            round: 1,
-            ideas: round1Results.map(idea => ({
-                id: idea.id,
-                score: idea.round1Score
-            }))
-        });
+        console.log('Sending final results to server:', finalResultsData);
 
-        // Add Round 2 data (from votingGroups)
-        const round2Data = [];
-        votingGroups.forEach(group => {
-            if (group.round === 2) {
-                group.ideas.forEach(idea => {
-                    round2Data.push({
-                        id: idea.id,
-                        score: idea.score
-                    });
-                });
-            }
-        });
-        if (round2Data.length > 0) {
-            allVotesData.rounds.push({
-                round: 2,
-                ideas: round2Data
-            });
-        }
-
-        // Add Round 3 data (from votingGroups)
-        const round3Data = [];
-        votingGroups.forEach(group => {
-            if (group.round === 3) {
-                group.ideas.forEach(idea => {
-                    round3Data.push({
-                        id: idea.id,
-                        score: idea.score
-                    });
-                });
-            }
-        });
-        if (round3Data.length > 0) {
-            allVotesData.rounds.push({
-                round: 3,
-                ideas: round3Data
-            });
-        }
-
-        console.log('Sending all votes to server:', allVotesData);
-
-        const response = await fetch(`${API_BASE_URL}/submit-all-votes`, {
+        const response = await fetch(`${API_BASE_URL}/submit-final-results`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(allVotesData)
+            body: JSON.stringify(finalResultsData)
         });
 
         if (!response.ok) {
-            throw new Error('Failed to submit votes');
+            throw new Error('Failed to submit final results');
         }
 
         const result = await response.json();
@@ -791,8 +785,8 @@ async function sendAllVotesToServer() {
         completeVoting();
 
     } catch (error) {
-        console.error('Error sending votes to server:', error);
-        alert('Error submitting votes. Please try again.');
+        console.error('Error sending final results to server:', error);
+        alert('Error submitting final results. Please try again.');
     }
 }
 
