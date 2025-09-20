@@ -51,8 +51,8 @@ API will be available at `http://localhost:5000`
 
 ## Scoring Rules
 
-- **Score 2**: Maximum 40% of total ideas (8 out of 20)
-- **Score 1**: Maximum 30% of total ideas (6 out of 20)
+- **Score 2**: Maximum 20% of total ideas
+- **Score 1**: Maximum 40% of total ideas
 - **Score 0**: Remaining ideas (unlimited)
 - **All ideas must be scored** before submission
 

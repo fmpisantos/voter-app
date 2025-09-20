@@ -40,27 +40,31 @@
                         <span id="displayEmail"></span>
                     </div>
                 </div>
-                <h1>🗳️ Idea Scoring</h1>
-                <p>Assign scores (0-2) to all ideas. Score 2: max 40% of ideas, Score 1: max 30% of ideas, Score 0: remaining ideas. Click current score to remove, click different score to change.</p>
+                <h1>🗳️ Multi-Round Idea Scoring</h1>
+                <p>Round 1 - Score all ideas (2, 1, or 0). Score 2: max 20% of ideas, Score 1: max 40% of ideas, Score 0: remaining ideas. Click current score to remove, click different score to change.</p>
             </div>
 
-            <div class="game-container">
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
-                    </div>
-                </div>
+             <div class="game-container">
+                 <div class="round-info" id="roundInfo" style="display: none;">
+                     <strong>Round Information</strong>
+                 </div>
 
-                 <div class="stats">
-                     <div class="stat">
-                         <div class="stat-number" id="ideasRanked">0</div>
-                         <div class="stat-label">Ideas Scored</div>
-                     </div>
-                     <div class="stat">
-                         <div class="stat-number" id="totalIdeas">20</div>
-                         <div class="stat-label">Total Ideas</div>
+                 <div class="progress-container">
+                     <div class="progress-bar">
+                         <div class="progress-fill" id="progressFill"></div>
                      </div>
                  </div>
+
+                  <div class="stats">
+                      <div class="stat">
+                          <div class="stat-number" id="ideasRanked">0</div>
+                          <div class="stat-label">Ideas Scored</div>
+                      </div>
+                      <div class="stat">
+                          <div class="stat-number" id="totalIdeas">20</div>
+                          <div class="stat-label">Total Ideas</div>
+                      </div>
+                  </div>
 
                 <div class="ideas-section">
                     <h2 class="section-title">💡 Ideas to Score</h2>

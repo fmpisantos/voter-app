@@ -1053,4 +1053,74 @@ body {
     }
 }
 
+/* Final Results Styles */
+.idea-card.final-result {
+    background: linear-gradient(135deg, var(--color-bg-card) 0%, rgba(0, 102, 204, 0.05) 100%);
+    border: 2px solid var(--color-primary);
+    position: relative;
+}
+
+.idea-card.final-result .rank-badge {
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: var(--gradient-primary);
+    color: var(--color-text-white);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px var(--shadow-primary);
+    z-index: 10;
+}
+
+.final-score {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    text-align: center;
+    margin-top: 16px;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05));
+    border-radius: 12px;
+    border: 2px solid var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.15);
+}
+
+.final-score small {
+    color: var(--color-text-secondary);
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+.idea-card.final-result .idea-title {
+    font-weight: 600;
+    color: var(--color-text-heading);
+    margin-bottom: 8px;
+}
+
+.idea-card.final-result .idea-description {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Round information styling */
+.round-info {
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1), rgba(0, 102, 204, 0.05));
+    border: 2px solid var(--color-primary);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-align: center;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.15);
+}
+
+.round-info strong {
+    color: var(--color-text-primary);
+    font-size: 1.2rem;
+}
 
