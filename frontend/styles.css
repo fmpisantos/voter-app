@@ -245,8 +245,6 @@ body {
     border: 1px solid var(--color-border);
     border-radius: 16px;
     padding: 24px;
-    padding-left: 24px;
-    padding-right: 24px; /* Normal padding since no drag handle */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 8px var(--shadow-light);
     position: relative;

@@ -369,7 +369,6 @@ function renderFinalResults() {
             `<small>Eliminated in Round 1</small>`;
 
         resultCard.innerHTML = `
-            <div class="rank-badge">#${index + 1}</div>
             <div class="idea-title">${result.title}</div>
             <div class="idea-description">${result.description}</div>
             <div class="final-score">
@@ -559,6 +558,8 @@ function submitVote() {
         return;
     }
 
+    console.log(finalResults);
+
     const currentGroup = votingGroups[currentGroupIndex];
     const currentIdeas = currentGroup.ideas;
     const scoredCount = currentIdeas.filter(idea => idea.score !== null).length;
@@ -616,7 +617,7 @@ function submitVote() {
             // Move to next group in Round 3
             currentGroupIndex++;
         } else {
-            // Round 3 completed - send all voting data to server and show final results
+            // Round 3 completed - send final results to server and show final results
             sendAllVotesToServer();
             return;
         }
@@ -846,51 +847,8 @@ function createRound3Groups() {
 function completeVoting() {
     isVotingComplete = true;
 
-    // Collect final results from all original ideas with their total accumulated scores
-    finalResults = originalIdeas.map(originalIdea => {
-        // Find the idea in Round 1 results first
-        const round1Idea = round1Results.find(idea => idea.id === originalIdea.id);
-
-        if (!round1Idea || round1Idea.round1Score === 0) {
-            // Idea was eliminated in Round 1 (score 0 or no score)
-            return {
-                id: originalIdea.id,
-                title: originalIdea.title,
-                description: originalIdea.description,
-                finalScore: 0,
-                round1Score: 0,
-                round2Score: 0,
-                round3Score: 0
-            };
-        }
-
-        // Get the accumulated score from Round 1 + Round 2 (saved in round1Results)
-        const round2Score = round1Idea.round2Score || 0;
-        const round1Score = round1Idea.round1Score;
-        let finalScore = round1Score + round2Score;
-
-        // If we have Round 3 results, add them too
-        let round3Score = 0;
-        if (currentRound === 3) {
-            const round3Idea = votingGroups.flatMap(group => group.ideas)
-                .find(idea => idea.id === originalIdea.id);
-            if (round3Idea && round3Idea.score !== null) {
-                round3Score = round3Idea.score;
-                finalScore += round3Score;
-            }
-        }
-
-        return {
-            id: originalIdea.id,
-            title: originalIdea.title,
-            description: originalIdea.description,
-            finalScore: finalScore,
-            round1Score: round1Score,
-            round2Score: round2Score,
-            round3Score: round3Score
-        };
-    }).sort((a, b) => b.finalScore - a.finalScore);
-
+    // Since we already calculated and sent final results to server,
+    // just show a completion message
     renderIdeas();
     updateUI();
 }

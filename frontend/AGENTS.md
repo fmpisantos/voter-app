@@ -42,7 +42,7 @@
 
 ### API Endpoints
 - `GET /ideas` - Fetch ideas with optional user scores
-- `POST /submit-all-votes` - Submit all voting data at end of rounds (with normalization)
+- `POST /submit-final-results` - Submit final accumulated scores (simplified)
 - `POST /submit-vote` - Submit scores (legacy, round-by-round)
 - `POST /end-round` - Manual round advancement (70% survival)
 - `GET /final-results` - Get normalized final results
@@ -59,11 +59,11 @@
 - **If Not Voted**: Starts the 3-round voting process
 - **Status Indicators**: ✅ for completed users, ⏳ for waiting users
 
-### Score Normalization
-- **Process**: When all users vote, scores are normalized to account for different voting patterns
-- **Formula**: `normalized_score = user_score × (user_total / total_all_scores)`
-- **Purpose**: Ensures fair comparison by accounting for users who give different total points
-- **Storage**: Final normalized scores saved to `final_results.json`
+### Score Calculation
+- **Process**: Frontend calculates accumulated scores across all rounds
+- **Formula**: `final_score = round1_score + round2_score + round3_score`
+- **Purpose**: Simple accumulation of scores from each voting round
+- **Storage**: Final scores sent to server and stored in user files
 
 ### Best Practices
 - **Validation**: Input sanitization, scoring constraints (20% max score 2, 40% max score 1)

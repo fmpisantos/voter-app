@@ -1,102 +1,27 @@
 [
   {
-    "title": "AI-Powered Customer Support Chatbot",
-    "description": "Implement an intelligent chatbot that can handle customer inquiries 24/7, reducing response time and improving customer satisfaction through natural language processing.",
+    "title": "Idea 1",
+    "description": "Idea 1",
     "id": 1
   },
   {
-    "title": "Mobile Inventory Management App",
-    "description": "Create a cross-platform mobile application for real-time inventory tracking, barcode scanning, and automated reordering to streamline warehouse operations.",
+    "title": "Idea 2",
+    "description": "Idea 2",
     "id": 2
   },
   {
-    "title": "Blockchain-Based Voting System",
-    "description": "Develop a secure, transparent voting platform using blockchain technology to ensure election integrity and eliminate voter fraud.",
+    "title": "Idea 3",
+    "description": "Idea 3",
     "id": 3
   },
   {
-    "title": "Automated Testing Framework",
-    "description": "Build a comprehensive testing suite that includes unit tests, integration tests, and end-to-end tests with CI/CD pipeline integration.",
+    "title": "Idea 4",
+    "description": "Idea 4",
     "id": 4
   },
   {
-    "title": "Enhanced User Onboarding Flow",
-    "description": "Redesign the user registration and onboarding process with interactive tutorials, progress tracking, and personalized recommendations.",
+    "title": "Idea 5",
+    "description": "Idea 5",
     "id": 5
-  },
-  {
-    "title": "Real-Time Analytics Dashboard",
-    "description": "Create a dynamic dashboard that displays key performance indicators, user behavior analytics, and business metrics in real-time.",
-    "id": 6
-  },
-  {
-    "title": "Collaborative Document Editor",
-    "description": "Develop a web-based document editor with real-time collaboration features, version control, and cloud synchronization.",
-    "id": 7
-  },
-  {
-    "title": "Microservices API Gateway",
-    "description": "Implement an API gateway that handles authentication, rate limiting, load balancing, and routing for microservices architecture.",
-    "id": 8
-  },
-  {
-    "title": "Machine Learning Recommendation Engine",
-    "description": "Build a personalized recommendation system using machine learning algorithms to suggest products, content, or services to users.",
-    "id": 9
-  },
-  {
-    "title": "Cross-Platform Desktop Application",
-    "description": "Create a native desktop application that works seamlessly across Windows, macOS, and Linux using modern frameworks.",
-    "id": 10
-  },
-  {
-    "title": "Advanced Security Protocols",
-    "description": "Implement multi-factor authentication, encryption standards, and security monitoring to protect user data and prevent breaches.",
-    "id": 11
-  },
-  {
-    "title": "Scalable Cloud Infrastructure",
-    "description": "Design and deploy a cloud-native infrastructure with auto-scaling, container orchestration, and disaster recovery capabilities.",
-    "id": 12
-  },
-  {
-    "title": "IoT Device Management Platform",
-    "description": "Build a centralized platform for monitoring, updating, and managing Internet of Things devices across multiple locations.",
-    "id": 13
-  },
-  {
-    "title": "Interactive E-Learning Platform",
-    "description": "Develop an engaging online learning platform with video content, quizzes, progress tracking, and gamification elements.",
-    "id": 14
-  },
-  {
-    "title": "Automated Deployment Pipeline",
-    "description": "Create a CI/CD pipeline with automated testing, deployment, and rollback capabilities for faster and more reliable releases.",
-    "id": 15
-  },
-  {
-    "title": "Voice Recognition System",
-    "description": "Implement speech-to-text and voice command recognition features for hands-free interaction with applications and devices.",
-    "id": 16
-  },
-  {
-    "title": "Virtual Reality Training Module",
-    "description": "Develop immersive VR training programs for employee onboarding, skill development, and safety procedures.",
-    "id": 17
-  },
-  {
-    "title": "Social Media Analytics Tool",
-    "description": "Create a comprehensive tool for tracking social media engagement, sentiment analysis, and campaign performance across platforms.",
-    "id": 18
-  },
-  {
-    "title": "Predictive Maintenance System",
-    "description": "Build an AI-powered system that predicts equipment failures and schedules maintenance to minimize downtime.",
-    "id": 19
-  },
-  {
-    "title": "Multi-Language Support Framework",
-    "description": "Implement internationalization and localization features to support multiple languages and cultural adaptations.",
-    "id": 20
   }
 ]
