@@ -2,8 +2,8 @@ let ideas = [];
 let hasSubmitted = false;
 let userEmail = null;
 
-const MAX_SCORE_2_PERCENTAGE = 0.4;
-const MAX_SCORE_1_PERCENTAGE = 0.3;
+const MAX_SCORE_2_PERCENTAGE = 0.2;
+const MAX_SCORE_1_PERCENTAGE = 0.4;
 const API_BASE_URL = 'http://localhost:8080';
 
 function showEmailModal() {
@@ -122,6 +122,11 @@ async function initVoting() {
         await fetchIdeas();
         renderIdeas();
         updateUI();
+        window.scrollTo(0, 0);
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     } catch (error) {
         console.error('Error initializing voting:', error);
         alert('Error loading ideas. Please refresh the page.');
@@ -376,22 +381,9 @@ async function submitVote() {
 
         if (response.ok) {
             // Also save the scores for this user
-            try {
-                await fetch(`${API_BASE_URL}/save-scores`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email: userEmail, ideas: ideas })
-                });
-            } catch (saveError) {
-                console.error('Error saving scores:', saveError);
-                // Don't show error to user since vote was successful
-            }
-
             alert('Vote submitted successfully!');
             hasSubmitted = true;
-            updateUI();
+            initVoting()
         } else {
             alert(`Error submitting vote: ${result.error}`);
         }
@@ -422,8 +414,8 @@ function updateUI() {
     document.getElementById('progressFill').style.width = `${progress}%`;
 
     const submitBtn = document.getElementById('submitVoteBtn');
-    submitBtn.disabled = scoredCount !== totalIdeas || hasSubmitted;
-    submitBtn.textContent = hasSubmitted ? 'Vote Submitted' : 'Submit Vote';
+    submitBtn.disabled = scoredCount !== totalIdeas;
+    // submitBtn.textContent = hasSubmitted ? 'Vote Submitted' : 'Submit Vote';
 
     updateScoreCounts();
 }

@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "title": "AI-Powered Customer Support Chatbot",
+    "description": "Implement an intelligent chatbot that can handle customer inquiries 24/7, reducing response time and improving customer satisfaction through natural language processing.",
+    "user_scores": {
+      "filipe": 0
+    }
+  },
+  {
+    "id": 3,
+    "title": "Blockchain-Based Voting System",
+    "description": "Develop a secure, transparent voting platform using blockchain technology to ensure election integrity and eliminate voter fraud.",
+    "user_scores": {
+      "filipe": 0
+    }
+  },
+  {
+    "id": 5,
+    "title": "Enhanced User Onboarding Flow",
+    "description": "Redesign the user registration and onboarding process with interactive tutorials, progress tracking, and personalized recommendations.",
+    "user_scores": {
+      "filipe": 0
+    }
+  },
+  {
+    "id": 8,
+    "title": "Microservices API Gateway",
+    "description": "Implement an API gateway that handles authentication, rate limiting, load balancing, and routing for microservices architecture.",
+    "user_scores": {
+      "filipe": 0
+    }
+  },
+  {
+    "id": 10,
+    "title": "Cross-Platform Desktop Application",
+    "description": "Create a native desktop application that works seamlessly across Windows, macOS, and Linux using modern frameworks.",
+    "user_scores": {
+      "filipe": 0
+    }
+  },
+  {
+    "id": 15,
+    "title": "Automated Deployment Pipeline",
+    "description": "Create a CI/CD pipeline with automated testing, deployment, and rollback capabilities for faster and more reliable releases.",
+    "user_scores": {
+      "filipe": 1
+    }
+  },
+  {
+    "id": 17,
+    "title": "Virtual Reality Training Module",
+    "description": "Develop immersive VR training programs for employee onboarding, skill development, and safety procedures.",
+    "user_scores": {
+      "filipe": 1
+    }
+  },
+  {
+    "id": 19,
+    "title": "Predictive Maintenance System",
+    "description": "Build an AI-powered system that predicts equipment failures and schedules maintenance to minimize downtime.",
+    "user_scores": {
+      "filipe": 1
+    }
+  },
+  {
+    "id": 20,
+    "title": "Multi-Language Support Framework",
+    "description": "Implement internationalization and localization features to support multiple languages and cultural adaptations.",
+    "user_scores": {
+      "filipe": 2
+    }
+  }
+]

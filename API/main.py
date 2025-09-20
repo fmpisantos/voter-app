@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import json
-import re
 import os
+import random
 from datetime import datetime
 from config import Config
 
@@ -16,8 +16,6 @@ valid_emails = [
     "Pedro"
 ]
 
-# Load ideas from JSON file
-
 
 def load_ideas():
     try:
@@ -29,8 +27,6 @@ def load_ideas():
     except json.JSONDecodeError:
         print("Warning: Invalid JSON in ideas.json, using empty list")
         return []
-
-# Round management functions
 
 
 def get_current_round():
@@ -66,107 +62,68 @@ def load_current_round_ideas():
 
 
 def check_all_users_voted():
-    """Check if all valid users have submitted votes for the current round"""
+    """Check if all valid users have submitted votes for the current round by reading from round file"""
+    print("🔍 check_all_users_voted() called")
+
     current_round = get_current_round()
+    print(f"📊 Checking round: {current_round}")
+
     voted_users = set()
 
-    # Check submitted votes for current round
-    for vote in submitted_votes:
-        # For now, we'll track votes by checking if they exist
-        # In a real system, you'd want to track this more explicitly
-        if vote.get('round', 0) == current_round:
-            voted_users.add(vote.get('user_email', 'unknown'))
+    print(f"👥 Valid emails: {valid_emails} (total: {len(valid_emails)})")
 
-    return len(voted_users) >= len(valid_emails)
-
-
-def create_next_round(ideas_with_scores):
-    """Create the next round by eliminating ideas with 0 score"""
-    current_round = get_current_round()
-    next_round = current_round + 1
-
-    # Filter out ideas with 0 score
-    surviving_ideas = []
-    for idea in ideas_with_scores:
-        if idea.get('score', 0) > 0:
-            # Reset score for next round
-            idea_copy = idea.copy()
-            idea_copy['score'] = None
-            surviving_ideas.append(idea_copy)
-
-    if not surviving_ideas:
-        print("No ideas survived this round - voting complete!")
-        return False
-
-    # Save next round ideas
-    round_file = f'round{next_round}.json'
-    with open(round_file, 'w') as f:
-        json.dump(surviving_ideas, f, indent=2)
-
-    print(f"Created {round_file} with {len(surviving_ideas)} surviving ideas")
-    return True
-
-# Round management functions
-
-
-def get_current_round():
-    """Get the current round number by finding the highest roundX.json file"""
-    round_files = [f for f in os.listdir(
-        '.') if f.startswith('round') and f.endswith('.json')]
-    if not round_files:
-        return 0
-
-    round_numbers = []
-    for f in round_files:
-        try:
-            round_num = int(f.replace('round', '').replace('.json', ''))
-            round_numbers.append(round_num)
-        except ValueError:
-            continue
-
-    return max(round_numbers) if round_numbers else 0
-
-
-def load_current_round_ideas():
-    """Load ideas for the current round"""
-    current_round = get_current_round()
-
+    # Load current round file to check user_scores
     round_file = f'round{current_round}.json'
     try:
         with open(round_file, 'r') as f:
-            ideas = json.load(f)
+            current_ideas = json.load(f)
 
-        # Check if ideas have ids, if not add them and save
-        modified = False
-        for idx, idea in enumerate(ideas):
-            if 'id' not in idea:
-                idea['id'] = idx + 1  # Use 1-based indexing for ids
-                modified = True
+        print(f"📂 Loaded round file: {round_file} with {
+              len(current_ideas)} ideas")
 
-        # Save the file if we added ids
-        if modified:
-            with open(round_file, 'w') as f:
-                json.dump(ideas, f, indent=2)
-            print(f"Added ids to ideas in {round_file}")
+        # Check each idea's user_scores to see who has voted
+        for idea in current_ideas:
+            idea_id = idea.get('id')
+            user_scores = idea.get('user_scores', {})
 
-        return ideas
-    except (FileNotFoundError, json.JSONDecodeError):
-        print(f"Warning: Could not load {round_file}, falling back to ideas.json")
+            if user_scores:
+                print(f"  💡 Idea {idea_id} has scores from: {
+                      list(user_scores.keys())}")
 
+                # Check each user who scored this idea
+                for user_email in user_scores.keys():
+                    user_email_lower = user_email.strip().lower()
 
-def check_all_users_voted():
-    """Check if all valid users have submitted votes for the current round"""
-    current_round = get_current_round()
-    voted_users = set()
+                    # Only count votes from valid email addresses
+                    if any(user_email_lower == valid_email.lower() for valid_email in valid_emails):
+                        voted_users.add(user_email_lower)
+                        print(f"    ✅ Valid vote from: {user_email}")
+                    else:
+                        print(f"    ❌ Invalid/unknown voter: {user_email}")
+            else:
+                print(f"  💤 Idea {idea_id} has no scores yet")
 
-    # Check submitted votes for current round
-    for vote in submitted_votes:
-        # For now, we'll track votes by checking if they exist
-        # In a real system, you'd want to track this more explicitly
-        if vote.get('round', 0) == current_round:
-            voted_users.add(vote.get('user_email', 'unknown'))
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"⚠️  Could not load round file {round_file}: {e}")
+        print("  Assuming no votes have been submitted yet")
+        voted_users = set()
 
-    return len(voted_users) >= len(valid_emails)
+    print(f"📈 Round {current_round} summary:")
+    print(f"  - Valid votes found: {len(voted_users)}")
+    print(f"  - Required votes: {len(valid_emails)}")
+    print(f"  - Users who voted: {list(voted_users)}")
+
+    all_voted = len(voted_users) == len(valid_emails)
+
+    if all_voted:
+        print(f"🎉 ROUND {
+              current_round} COMPLETE - All {len(valid_emails)} users have voted!")
+        print("🚀 Automatic round ending will be triggered")
+    else:
+        print(f"⏳ ROUND {current_round} INCOMPLETE - {len(voted_users)
+                                                      }/{len(valid_emails)} users have voted")
+
+    return all_voted
 
 
 def create_next_round(ideas_with_scores):
@@ -174,11 +131,9 @@ def create_next_round(ideas_with_scores):
     current_round = get_current_round()
     next_round = current_round + 1
 
-    # Filter out ideas with 0 score
     surviving_ideas = []
     for idea in ideas_with_scores:
         if idea.get('score', 0) > 0:
-            # Reset score for next round
             idea_copy = idea.copy()
             idea_copy['score'] = None
             surviving_ideas.append(idea_copy)
@@ -187,7 +142,6 @@ def create_next_round(ideas_with_scores):
         print("No ideas survived this round - voting complete!")
         return False
 
-    # Save next round ideas
     round_file = f'round{next_round}.json'
     with open(round_file, 'w') as f:
         json.dump(surviving_ideas, f, indent=2)
@@ -204,6 +158,7 @@ def root():
         "endpoints": {
             "GET /ideas": "Get all available ideas (with user scores if email provided)",
             "POST /submit-vote": "Submit scored ideas",
+            "POST /end-round": "End current round and create next round with top 60% of ideas",
             "GET /results": "Get voting results",
             "GET /round-info": "Get current round information",
             "GET /user-scores": "Get user's saved scores from round files",
@@ -218,7 +173,6 @@ def get_round_info():
     current_round = get_current_round()
     current_ideas = load_current_round_ideas()
 
-    # Count votes for current round
     round_votes = [vote for vote in submitted_votes if vote.get(
         'round', 0) == current_round]
     voted_users = set()
@@ -241,20 +195,17 @@ def get_round_info():
 def get_ideas():
     """Get all available ideas for scoring"""
     current_ideas = load_current_round_ideas()
-    current_round = get_current_round()
 
-    # Get user email from query parameters
     email = request.args.get('email', '').strip().lower()
 
     ideas = []
     for idx, idea in enumerate(current_ideas):
-        # Get user's previous score from the idea's user_scores
         previous_score = None
         if email and "user_scores" in idea and email in idea["user_scores"]:
             previous_score = idea["user_scores"][email]
 
         ideas.append({
-            "id": idea["id"],  # use actual idea id
+            "id": idea["id"],
             "title": idea["title"],
             "description": idea["description"],
             "score": previous_score
@@ -289,8 +240,8 @@ def submit_vote():
         if score is not None:
             score_counts[score] += 1
 
-    max_score_2 = int(total_count * 0.4)
-    max_score_1 = int(total_count * 0.3)
+    max_score_2 = int(total_count * 0.2)
+    max_score_1 = int(total_count * 0.4)
 
     if score_counts[2] > max_score_2:
         return jsonify({
@@ -312,24 +263,113 @@ def submit_vote():
         "total_score": total_score,
         "score_distribution": score_counts,
         "round": current_round,
-        "user_email": data.get('email', 'unknown')  # Track which user voted
+        "user_email": data.get('email', 'unknown')
     }
 
     submitted_votes.append(result)
 
-    # Save user scores directly to the round file
     email = data.get('email', '').strip().lower()
     if email:
         save_user_scores_to_round_file(current_round, email, ideas)
         print(f"Saved scores for user {email} in round {current_round}")
 
-    # Check if this completes the round (all users have voted)
+    # Check if all users have voted and automatically end the round
     if check_all_users_voted():
         print(f"All users have voted for round {
-              current_round}. Creating next round...")
-        create_next_round(ideas)
+              current_round}. Automatically ending round...")
+        try:
+            # Load current round ideas with user scores
+            round_file = f'round{current_round}.json'
+            with open(round_file, 'r') as f:
+                current_ideas = json.load(f)
+
+            # Randomly select 70% of ideas (scores are not transmitted between rounds)
+            total_ideas = len(current_ideas)
+            top_count = max(1, int(total_ideas * 0.7))  # At least 1 idea
+
+            # Get all idea IDs and randomly select top_count of them
+            all_idea_ids = [idea['id'] for idea in current_ideas]
+            top_idea_ids = random.sample(all_idea_ids, top_count)
+
+            print(f"🔀 Randomly selected {top_count} ideas out of {
+                  total_ideas} for next round")
+            print(f"📋 Selected idea IDs: {top_idea_ids}")
+
+            # Create next round ideas (only id, title, description)
+            next_round = current_round + 1
+            next_round_ideas = []
+
+            for idea in current_ideas:
+                if idea['id'] in top_idea_ids:
+                    next_round_ideas.append({
+                        "id": idea["id"],
+                        "title": idea["title"],
+                        "description": idea["description"]
+                    })
+
+            # Save next round file
+            next_round_file = f'round{next_round}.json'
+            with open(next_round_file, 'w') as f:
+                json.dump(next_round_ideas, f, indent=2)
+
+            print(f"Automatically ended round {current_round}, created round {
+                  next_round} with {len(next_round_ideas)} ideas")
+
+        except Exception as e:
+            print(f"Error automatically ending round {current_round}: {e}")
 
     return jsonify(result)
+
+
+@app.route('/end-round', methods=['POST'])
+def end_round():
+    """End the current round and create the next round with top 70% of ideas"""
+    current_round = get_current_round()
+
+    try:
+        round_file = f'round{current_round}.json'
+        with open(round_file, 'r') as f:
+            current_ideas = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return jsonify({"error": f"Could not load round {current_round} data"}), 500
+
+    # Randomly select 70% of ideas (scores are not transmitted between rounds)
+    total_ideas = len(current_ideas)
+    top_count = max(1, int(total_ideas * 0.7))  # At least 1 idea
+
+    # Get all idea IDs and randomly select top_count of them
+    all_idea_ids = [idea['id'] for idea in current_ideas]
+    top_idea_ids = random.sample(all_idea_ids, top_count)
+
+    print(f"🔀 Manually ended round {
+          current_round} - randomly selected {top_count} ideas out of {total_ideas}")
+    print(f"📋 Selected idea IDs: {top_idea_ids}")
+
+    next_round = current_round + 1
+    next_round_ideas = []
+
+    for idea in current_ideas:
+        if idea['id'] in top_idea_ids:
+            next_round_ideas.append({
+                "id": idea["id"],
+                "title": idea["title"],
+                "description": idea["description"]
+            })
+
+    next_round_file = f'round{next_round}.json'
+    with open(next_round_file, 'w') as f:
+        json.dump(next_round_ideas, f, indent=2)
+
+    print(f"Ended round {current_round}, created round {
+          next_round} with {len(next_round_ideas)} ideas")
+
+    return jsonify({
+        "message": f"Round {current_round} ended successfully",
+        "next_round": next_round,
+        "total_ideas": total_ideas,
+        "surviving_ideas": len(next_round_ideas),
+        "survival_rate": len(next_round_ideas) / total_ideas if total_ideas > 0 else 0
+    })
 
 
 @app.route('/results', methods=['GET'])
@@ -403,7 +443,6 @@ def get_user_scores():
 
     email = email.strip().lower()
 
-    # Load current round ideas to get user scores
     current_ideas = load_current_round_ideas()
 
     scores_list = []
@@ -411,7 +450,7 @@ def get_user_scores():
         score = idea.get('user_scores', {}).get(email)
         if score is not None:
             scores_list.append({
-                'id': idea['id'],  # use actual idea id
+                'id': idea['id'],
                 'title': idea['title'],
                 'score': score
             })
@@ -435,7 +474,6 @@ def save_user_scores():
     ideas = data['ideas']
     round_num = str(data.get('round', get_current_round()))
 
-    # Save the scores directly to the round file
     save_user_scores_to_round_file(int(round_num), email, ideas)
 
     return jsonify({"success": True, "round": round_num})
@@ -444,7 +482,6 @@ def save_user_scores():
 def save_user_scores_to_round_file(round_num, email, ideas):
     """Save a user's scores directly to the round file"""
     if round_num == 0:
-        # For round 0, we need to create the round file first
         current_ideas = load_current_round_ideas()
         round_file = 'round0.json'
     else:
@@ -456,22 +493,20 @@ def save_user_scores_to_round_file(round_num, email, ideas):
             print(f"Warning: Could not load {round_file}")
             return
 
-    # Update the user_scores for each idea
     for idea_data in ideas:
-        # Find the idea by its id
         idea_id = idea_data['id']
         score = idea_data.get('score')
 
-        # Find the idea with matching id
-        idea = next((idea for idea in current_ideas if idea.get('id') == idea_id), None)
+        idea = next(
+            (idea for idea in current_ideas if idea.get('id') == idea_id), None)
         if idea is not None:
             if 'user_scores' not in idea:
                 idea['user_scores'] = {}
             idea['user_scores'][email] = score
         else:
-            print(f"Warning: idea with id {idea_id} not found in round {round_num}")
+            print(f"Warning: idea with id {
+                  idea_id} not found in round {round_num}")
 
-    # Save the updated ideas back to the file
     with open(round_file, 'w') as f:
         json.dump(current_ideas, f, indent=2)
 

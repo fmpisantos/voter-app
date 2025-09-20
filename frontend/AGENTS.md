@@ -10,6 +10,7 @@
 - **Run API**: `cd API && python run.py` (starts Flask on port 8080)
 - **Run API (alt)**: `cd API && python main.py`
 - **Install deps**: `cd API && pip install -r requirements.txt`
+- **End Round**: `curl -X POST http://localhost:8080/end-round` (manually advance to next round)
 - **No build/lint/test commands** - pure Python project
 
 ### Running Tests
@@ -56,6 +57,23 @@
 - **Backend**: `main.py` (routes), `models.py` (data structures), `config.py` (settings)
 - **Data**: JSON files for round data (`round0.json`, `round1.json`, etc.)
 - **Config**: `.env` for environment variables, `.env.example` as template
+
+### API Endpoints
+- **GET /ideas**: Get all available ideas (with user scores if email provided)
+- **POST /submit-vote**: Submit scored ideas (auto-advances rounds when all users vote)
+- **POST /end-round**: Manually end current round and create next round with top 70% of ideas
+- **GET /results**: Get voting results
+- **GET /round-info**: Get current round information
+- **GET /user-scores**: Get user's saved scores from round files
+- **POST /save-scores**: Save user scores to round files
+
+### Round Management
+- **Automatic Round Advancement**: Rounds auto-advance when all valid users have submitted votes
+- **Manual Round Control**: `/end-round` endpoint available for manual round advancement
+- **Random Selection**: Both automatic and manual round ending randomly select 70% of ideas (scores are not transmitted between rounds)
+- **Clean Round Files**: New round files contain only id, title, description (no user_scores)
+- **Vote Tracking**: System reads from round JSON files to determine completion (not in-memory variables)
+- **Detailed Logging**: `check_all_users_voted()` function provides comprehensive logging of vote status from files
 
 ### Best Practices
 - **Validation**: Validate all inputs, especially scoring constraints
