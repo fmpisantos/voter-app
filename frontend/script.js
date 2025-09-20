@@ -7,6 +7,7 @@ let votingGroups = []; // Array of groups to vote on
 let currentGroupIndex = 0;
 let finalResults = []; // Store final cumulative scores
 let isVotingComplete = false;
+let allUserVotes = []; // Store all voting data to send at the end
 
 const MAX_SCORE_2_PERCENTAGE = 0.2;
 const MAX_SCORE_1_PERCENTAGE = 0.4;
@@ -54,6 +55,131 @@ async function loadUserScores(email) {
     }
 }
 
+async function checkUserVotingStatus(email) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/user-status?email=${encodeURIComponent(email)}`);
+        if (response.ok) {
+            return await response.json();
+        }
+        return { has_voted: false };
+    } catch (error) {
+        console.error('Error checking user voting status:', error);
+        return { has_voted: false };
+    }
+}
+
+async function getAllUsersStatus() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/all-users-status`);
+        if (response.ok) {
+            return await response.json();
+        }
+        return { users: [], all_voted: false };
+    } catch (error) {
+        console.error('Error getting all users status:', error);
+        return { users: [], all_voted: false };
+    }
+}
+
+async function showVotingStatusPage() {
+    const statusData = await getAllUsersStatus();
+
+    // Hide the main game container and show status page
+    document.querySelector('.game-container').style.display = 'none';
+
+    // Create status page
+    const statusContainer = document.createElement('div');
+    statusContainer.id = 'statusContainer';
+    statusContainer.className = 'status-container';
+    statusContainer.innerHTML = `
+        <div class="status-header">
+            <h2>🗳️ Voting Status</h2>
+            <p>You have already completed your voting. Here's the current status:</p>
+        </div>
+        <div class="users-status">
+            ${statusData.users.map(user => `
+                <div class="user-status-item ${user.has_voted ? 'completed' : 'waiting'}">
+                    <span class="status-icon">${user.has_voted ? '✅' : '⏳'}</span>
+                    <span class="user-email">${user.email}</span>
+                    <div class="status-text">${user.has_voted ? 'Completed' : 'Waiting'}</div>
+                </div>
+            `).join('')}
+        </div>
+        <div class="status-summary">
+            <div class="summary-stat">
+                <div class="stat-number">${statusData.voted_count}/${statusData.total_users}</div>
+                <div class="stat-label">Users Completed</div>
+            </div>
+        </div>
+    `;
+
+    // Insert status container after the header
+    const header = document.querySelector('.header');
+    header.insertAdjacentElement('afterend', statusContainer);
+
+    // If all users have voted, show final results
+    if (statusData.all_voted) {
+        await showFinalResults();
+    } else {
+        // Show refresh button for users to check status
+        const refreshButton = document.createElement('button');
+        refreshButton.className = 'control-button secondary';
+        refreshButton.textContent = 'Refresh Status';
+        refreshButton.onclick = () => {
+            document.getElementById('statusContainer').remove();
+            document.querySelector('.game-container').style.display = 'block';
+            showVotingStatusPage();
+        };
+
+        statusContainer.querySelector('.status-summary').appendChild(refreshButton);
+    }
+}
+
+async function showFinalResults() {
+    try {
+        const finalResults = await fetchResults();
+
+        // Hide status container and show results
+        const statusContainer = document.getElementById('statusContainer');
+        if (statusContainer) {
+            statusContainer.remove();
+        }
+
+        document.querySelector('.game-container').style.display = 'none';
+
+        // Create final results display
+        const resultsContainer = document.createElement('div');
+        resultsContainer.id = 'finalResultsContainer';
+        resultsContainer.className = 'final-results-container';
+        resultsContainer.innerHTML = `
+            <div class="results-header">
+                <h2>🏆 Final Results</h2>
+                <p>All users have completed voting. Here are the final normalized results:</p>
+            </div>
+            <div class="final-results-list">
+                ${Array.isArray(finalResults) ? finalResults.map((idea, index) => `
+                    <div class="final-result-item">
+                        <div class="rank-badge">#${index + 1}</div>
+                        <div class="idea-content">
+                            <div class="idea-title">${idea.title}</div>
+                            <div class="idea-description">${idea.description}</div>
+                            <div class="final-score">Score: ${idea.final_score.toFixed(3)}</div>
+                        </div>
+                    </div>
+                `).join('') : '<p>No final results available yet.</p>'}
+            </div>
+        `;
+
+        // Insert results container
+        const header = document.querySelector('.header');
+        header.insertAdjacentElement('afterend', resultsContainer);
+
+    } catch (error) {
+        console.error('Error loading final results:', error);
+        alert('Error loading final results. Please try again.');
+    }
+}
+
 async function handleEmailSubmit(event) {
     event.preventDefault();
 
@@ -83,12 +209,20 @@ async function handleEmailSubmit(event) {
         // Show user email in the top left
         showUserEmail(email);
 
-        const savedScores = await loadUserScores(email);
-        if (savedScores.length > 0) {
-            loadSavedScores(savedScores);
-        }
+        // Check if user has already voted
+        const userStatus = await checkUserVotingStatus(email);
 
-        await initVoting();
+        if (userStatus.has_voted) {
+            // User has already voted - show status page
+            await showVotingStatusPage();
+        } else {
+            // User hasn't voted - start voting flow
+            const savedScores = await loadUserScores(email);
+            if (savedScores.length > 0) {
+                loadSavedScores(savedScores);
+            }
+            await initVoting();
+        }
     } else {
         emailError.textContent = validationResult.error || 'Invalid email address.';
         emailError.style.display = 'block';
@@ -483,8 +617,8 @@ function submitVote() {
             // Move to next group in Round 3
             currentGroupIndex++;
         } else {
-            // Round 3 completed - show final results
-            completeVoting();
+            // Round 3 completed - send all voting data to server and show final results
+            sendAllVotesToServer();
             return;
         }
     }
@@ -579,6 +713,87 @@ function saveRound2Results() {
             }
         });
     });
+}
+
+async function sendAllVotesToServer() {
+    try {
+        // Collect all voting data from all rounds
+        const allVotesData = {
+            email: userEmail,
+            rounds: []
+        };
+
+        // Add Round 1 data
+        allVotesData.rounds.push({
+            round: 1,
+            ideas: round1Results.map(idea => ({
+                id: idea.id,
+                score: idea.round1Score
+            }))
+        });
+
+        // Add Round 2 data (from votingGroups)
+        const round2Data = [];
+        votingGroups.forEach(group => {
+            if (group.round === 2) {
+                group.ideas.forEach(idea => {
+                    round2Data.push({
+                        id: idea.id,
+                        score: idea.score
+                    });
+                });
+            }
+        });
+        if (round2Data.length > 0) {
+            allVotesData.rounds.push({
+                round: 2,
+                ideas: round2Data
+            });
+        }
+
+        // Add Round 3 data (from votingGroups)
+        const round3Data = [];
+        votingGroups.forEach(group => {
+            if (group.round === 3) {
+                group.ideas.forEach(idea => {
+                    round3Data.push({
+                        id: idea.id,
+                        score: idea.score
+                    });
+                });
+            }
+        });
+        if (round3Data.length > 0) {
+            allVotesData.rounds.push({
+                round: 3,
+                ideas: round3Data
+            });
+        }
+
+        console.log('Sending all votes to server:', allVotesData);
+
+        const response = await fetch(`${API_BASE_URL}/submit-all-votes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(allVotesData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to submit votes');
+        }
+
+        const result = await response.json();
+        console.log('Server response:', result);
+
+        // Now complete the voting process
+        completeVoting();
+
+    } catch (error) {
+        console.error('Error sending votes to server:', error);
+        alert('Error submitting votes. Please try again.');
+    }
 }
 
 function createRound3Groups() {
@@ -776,6 +991,13 @@ function updateFinalResultsUI() {
 
 async function fetchResults() {
     try {
+        // Try to get final normalized results first
+        const finalResponse = await fetch(`${API_BASE_URL}/final-results`);
+        if (finalResponse.ok) {
+            return await finalResponse.json();
+        }
+
+        // Fall back to regular results if final results aren't available yet
         const response = await fetch(`${API_BASE_URL}/results`);
         if (!response.ok) {
             throw new Error('Failed to fetch results');
@@ -804,40 +1026,66 @@ async function toggleResults() {
 }
 
 function displayResults(results) {
-    document.getElementById('totalVotes').textContent = results.total_votes;
-    // Display total points instead of counts (count × score value)
-    document.getElementById('avgScore2').textContent = ((results.score_distributions[2] || 0) * 2);
-    document.getElementById('avgScore1').textContent = ((results.score_distributions[1] || 0) * 1);
-    document.getElementById('avgScore0').textContent = ((results.score_distributions[0] || 0) * 0);
+    // Check if this is final normalized results or regular results
+    const isFinalResults = Array.isArray(results) && results.length > 0 && results[0].hasOwnProperty('final_score');
 
-    const averageScoresList = document.getElementById('averageScoresList');
-    averageScoresList.innerHTML = '';
+    if (isFinalResults) {
+        // Display final normalized results
+        document.getElementById('totalVotes').textContent = 'Final Results';
+        document.getElementById('avgScore2').textContent = 'Normalized';
+        document.getElementById('avgScore1').textContent = 'Scores';
+        document.getElementById('avgScore0').textContent = 'Available';
 
-    if (Object.keys(results.average_scores).length === 0) {
-        averageScoresList.innerHTML = '<p>No votes submitted yet.</p>';
-        return;
-    }
+        const averageScoresList = document.getElementById('averageScoresList');
+        averageScoresList.innerHTML = '';
 
-    const sortedIdeas = Object.entries(results.average_scores)
-        .sort(([, a], [, b]) => b - a)
-        .map(([id, avg]) => {
-            const idea = ideas.find(i => i.id == id);
-            return {
-                id: parseInt(id),
-                title: idea ? idea.title : `Idea ${id}`,
-                average: avg
-            };
+        results.forEach(idea => {
+            const ideaElement = document.createElement('div');
+            ideaElement.className = 'average-score-item';
+            ideaElement.innerHTML = `
+                <div class="idea-title">${idea.title}</div>
+                <div class="idea-description">${idea.description}</div>
+                <div class="average-score">Final Score: ${idea.final_score.toFixed(3)}</div>
+            `;
+            averageScoresList.appendChild(ideaElement);
         });
+    } else {
+        // Display regular results
+        document.getElementById('totalVotes').textContent = results.total_votes || 0;
+        // Display total points instead of counts (count × score value)
+        document.getElementById('avgScore2').textContent = ((results.score_distributions?.[2] || 0) * 2);
+        document.getElementById('avgScore1').textContent = ((results.score_distributions?.[1] || 0) * 1);
+        document.getElementById('avgScore0').textContent = ((results.score_distributions?.[0] || 0) * 0);
 
-    sortedIdeas.forEach(idea => {
-        const ideaElement = document.createElement('div');
-        ideaElement.className = 'average-score-item';
-        ideaElement.innerHTML = `
-            <div class="idea-title">${idea.title}</div>
-            <div class="average-score">${idea.average.toFixed(2)}</div>
-        `;
-        averageScoresList.appendChild(ideaElement);
-    });
+        const averageScoresList = document.getElementById('averageScoresList');
+        averageScoresList.innerHTML = '';
+
+        if (!results.average_scores || Object.keys(results.average_scores).length === 0) {
+            averageScoresList.innerHTML = '<p>No votes submitted yet.</p>';
+            return;
+        }
+
+        const sortedIdeas = Object.entries(results.average_scores)
+            .sort(([, a], [, b]) => b - a)
+            .map(([id, avg]) => {
+                const idea = ideas.find(i => i.id == id);
+                return {
+                    id: parseInt(id),
+                    title: idea ? idea.title : `Idea ${id}`,
+                    average: avg
+                };
+            });
+
+        sortedIdeas.forEach(idea => {
+            const ideaElement = document.createElement('div');
+            ideaElement.className = 'average-score-item';
+            ideaElement.innerHTML = `
+                <div class="idea-title">${idea.title}</div>
+                <div class="average-score">${idea.average.toFixed(2)}</div>
+            `;
+            averageScoresList.appendChild(ideaElement);
+        });
+    }
 }
 
 

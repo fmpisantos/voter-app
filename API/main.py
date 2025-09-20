@@ -125,6 +125,141 @@ def check_all_users_voted():
 
     return all_voted
 
+def check_all_users_voted_final():
+    """Check if all valid users have submitted their final votes"""
+    print("🔍 check_all_users_voted_final() called")
+
+    voted_users = set()
+
+    # Check for user vote files
+    for valid_email in valid_emails:
+        user_file = f'user_votes_{valid_email.replace("@", "_").replace(".", "_")}.json'
+        if os.path.exists(user_file):
+            voted_users.add(valid_email.lower())
+            print(f"    ✅ Found votes from: {valid_email}")
+
+    print(f"📈 Final voting summary:")
+    print(f"  - Valid votes found: {len(voted_users)}")
+    print(f"  - Required votes: {len(valid_emails)}")
+    print(f"  - Users who voted: {list(voted_users)}")
+
+    all_voted = len(voted_users) == len(valid_emails)
+
+    if all_voted:
+        print(f"🎉 ALL USERS HAVE VOTED! Ready for normalization.")
+    else:
+        print(f"⏳ WAITING - {len(voted_users)}/{len(valid_emails)} users have voted")
+
+    return all_voted
+
+def normalize_all_scores():
+    """Normalize all user scores and calculate final idea scores"""
+    print("🔄 Starting score normalization process...")
+
+    # Load all user vote files
+    all_user_votes = {}
+    for valid_email in valid_emails:
+        user_file = f'user_votes_{valid_email.replace("@", "_").replace(".", "_")}.json'
+        if os.path.exists(user_file):
+            with open(user_file, 'r') as f:
+                user_data = json.load(f)
+                all_user_votes[valid_email] = user_data
+
+    print(f"📊 Loaded votes from {len(all_user_votes)} users")
+
+    # Calculate total scores across all tasks by all users
+    total_all_scores = 0
+    user_totals = {}
+
+    for email, user_data in all_user_votes.items():
+        user_total = 0
+        rounds_data = user_data.get('rounds')
+        if rounds_data and isinstance(rounds_data, list):
+            for round_data in rounds_data:
+                if isinstance(round_data, dict):
+                    ideas_data = round_data.get('ideas')
+                    if ideas_data and isinstance(ideas_data, list):
+                        for idea in ideas_data:
+                            if isinstance(idea, dict):
+                                score = idea.get('score', 0)
+                                if isinstance(score, (int, float)):
+                                    user_total += score
+        user_totals[email] = user_total
+        total_all_scores += user_total
+
+    print(f"📈 Total scores across all users: {total_all_scores}")
+    print(f"👥 User totals: {user_totals}")
+
+    # Calculate normalization factors
+    user_normalizations = {}
+    for email, user_total in user_totals.items():
+        if total_all_scores > 0:
+            user_normalizations[email] = user_total / total_all_scores
+        else:
+            user_normalizations[email] = 1.0
+
+    print(f"🔢 User normalization factors: {user_normalizations}")
+
+    # Calculate final normalized scores for each idea
+    final_idea_scores = {}
+
+    # Load original ideas to get idea details
+    try:
+        with open('ideas.json', 'r') as f:
+            original_ideas = json.load(f)
+    except FileNotFoundError:
+        print("⚠️  ideas.json not found, using round0.json")
+        try:
+            with open('round0.json', 'r') as f:
+                original_ideas = json.load(f)
+        except FileNotFoundError:
+            print("❌ No idea files found!")
+            return
+
+    # Initialize final scores
+    for idea in original_ideas:
+        final_idea_scores[idea['id']] = {
+            'id': idea['id'],
+            'title': idea['title'],
+            'description': idea['description'],
+            'final_score': 0.0,
+            'user_scores': {}
+        }
+
+    # Apply normalization to each user's scores
+    for email, user_data in all_user_votes.items():
+        normalization = user_normalizations[email]
+
+        rounds_data = user_data.get('rounds')
+        if rounds_data and isinstance(rounds_data, list):
+            for round_data in rounds_data:
+                if isinstance(round_data, dict):
+                    ideas_data = round_data.get('ideas')
+                    if ideas_data and isinstance(ideas_data, list):
+                        for idea in ideas_data:
+                            if isinstance(idea, dict):
+                                idea_id = idea.get('id')
+                                if idea_id:
+                                    original_score = idea.get('score', 0)
+                                    if isinstance(original_score, (int, float)):
+                                        normalized_score = original_score * normalization
+
+                                        if idea_id in final_idea_scores:
+                                            final_idea_scores[idea_id]['final_score'] += normalized_score
+                                            final_idea_scores[idea_id]['user_scores'][email] = normalized_score
+
+    print(f"✅ Calculated final scores for {len(final_idea_scores)} ideas")
+
+    # Save final results
+    final_results = list(final_idea_scores.values())
+    final_results.sort(key=lambda x: x['final_score'], reverse=True)
+
+    with open('final_results.json', 'w') as f:
+        json.dump(final_results, f, indent=2)
+
+    print("💾 Saved final normalized results to final_results.json")
+    print("🏆 Normalization complete!")
+
 
 def create_next_round(ideas_with_scores):
     """Create the next round by eliminating ideas with 0 score"""
@@ -213,6 +348,55 @@ def get_ideas():
 
     return jsonify(ideas)
 
+
+@app.route('/submit-all-votes', methods=['POST'])
+def submit_all_votes():  # type: ignore
+    """Submit all voting data from all rounds at once"""
+    data = request.get_json()
+
+    if not data or 'email' not in data or 'rounds' not in data:
+        return jsonify({"error": "Email and rounds data required"}), 400
+
+    email = data['email'].strip().lower()
+    rounds = data['rounds']
+
+    if not rounds:
+        return jsonify({"error": "No rounds data provided"}), 400
+
+    # Type: ignore for JSON data handling
+    rounds_list = rounds if isinstance(rounds, list) else []  # type: ignore
+    if not rounds_list or len(rounds_list) == 0:  # type: ignore
+        return jsonify({"error": "No rounds data provided"}), 400
+
+    print(f"📥 Received all votes from user {email}")
+
+    # Store user votes data
+    user_vote_data = {
+        "email": email,
+        "rounds": rounds_list,
+        "submitted_at": datetime.utcnow().isoformat() + "Z"
+    }
+
+    # Save to a user votes file
+    user_votes_file = f'user_votes_{email.replace("@", "_").replace(".", "_")}.json'
+    with open(user_votes_file, 'w') as f:
+        json.dump(user_vote_data, f, indent=2)
+
+    print(f"💾 Saved user votes to {user_votes_file}")
+
+    # Process and normalize scores if all users have voted
+    if check_all_users_voted_final():
+        print("🎯 All users have voted! Processing normalization...")
+        normalize_all_scores()
+        return jsonify({
+            "message": "All votes submitted successfully. Scores normalized.",
+            "normalized": True
+        })
+
+    return jsonify({
+        "message": "Votes submitted successfully. Waiting for other users.",
+        "normalized": False
+    })
 
 @app.route('/submit-vote', methods=['POST'])
 def submit_vote():
@@ -477,6 +661,55 @@ def save_user_scores():
     save_user_scores_to_round_file(int(round_num), email, ideas)
 
     return jsonify({"success": True, "round": round_num})
+
+@app.route('/final-results', methods=['GET'])
+def get_final_results():
+    """Get the final normalized results"""
+    try:
+        with open('final_results.json', 'r') as f:
+            final_results = json.load(f)
+        return jsonify(final_results)
+    except FileNotFoundError:
+        return jsonify({"error": "Final results not available yet"}), 404
+
+@app.route('/user-status', methods=['GET'])
+def get_user_status():
+    """Check if a specific user has voted"""
+    email = request.args.get('email', '').strip().lower()
+    if not email:
+        return jsonify({"error": "Email required"}), 400
+
+    user_file = f'user_votes_{email.replace("@", "_").replace(".", "_")}.json'
+    has_voted = os.path.exists(user_file)
+
+    return jsonify({
+        "email": email,
+        "has_voted": has_voted
+    })
+
+@app.route('/all-users-status', methods=['GET'])
+def get_all_users_status():
+    """Get voting status for all users"""
+    users_status = []
+
+    for email in valid_emails:
+        user_file = f'user_votes_{email.replace("@", "_").replace(".", "_")}.json'
+        has_voted = os.path.exists(user_file)
+
+        users_status.append({
+            "email": email,
+            "has_voted": has_voted,
+            "status": "completed" if has_voted else "waiting"
+        })
+
+    all_voted = all(user["has_voted"] for user in users_status)
+
+    return jsonify({
+        "users": users_status,
+        "all_voted": all_voted,
+        "total_users": len(valid_emails),
+        "voted_count": sum(1 for user in users_status if user["has_voted"])
+    })
 
 
 def save_user_scores_to_round_file(round_num, email, ideas):
