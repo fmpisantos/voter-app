@@ -11,7 +11,7 @@ let allUserVotes = []; // Store all voting data to send at the end
 
 const MAX_SCORE_2_PERCENTAGE = 0.2;
 const MAX_SCORE_1_PERCENTAGE = 0.4;
-const API_BASE_URL = 'http://18.100.153.212:8080';
+const API_BASE_URL = 'http://localhost:8080';
 
 function showEmailModal() {
     const modal = document.getElementById('emailModal');
