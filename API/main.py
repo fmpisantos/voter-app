@@ -510,8 +510,9 @@ def check_all_users_final_results():
 
 
 def store_final_results():
-    """Store the final accumulated results from all users"""
-    print("🔄 Storing final results...")
+    """Store the final accumulated results from all users with detailed logging and normalization"""
+    print("🔄 Starting final results calculation and storage...")
+    print("=" * 80)
 
     # Load all user final results
     all_final_results = {}
@@ -523,36 +524,120 @@ def store_final_results():
                 all_final_results[valid_email] = user_data['finalResults']
 
     print(f"📊 Loaded final results from {len(all_final_results)} users")
+    print(f"👥 Participating users: {list(all_final_results.keys())}")
+    print()
 
-    # Combine results from all users
-    combined_results = {}
+    # Display raw scores from each user
+    print("📋 RAW SCORES FROM EACH USER:")
+    print("-" * 50)
+    for email, user_results in all_final_results.items():
+        print(f"User: {email}")
+        for result in user_results:
+            print(f"  Idea {result['id']} ({result['title']}): {result['finalScore']} points")
+        print()
+
+    # Calculate user totals for normalization
+    print("🔍 CALCULATING USER TOTALS FOR NORMALIZATION:")
+    print("-" * 50)
+    user_totals = {}
+    total_all_scores = 0
 
     for email, user_results in all_final_results.items():
+        user_total = sum(result['finalScore'] or 0 for result in user_results)
+        user_totals[email] = user_total
+        total_all_scores += user_total
+        print(f"User {email} total: {user_total} points")
+
+    average_user_total = total_all_scores / len(all_final_results)
+    print(f"Average user total: {average_user_total:.2f} points")
+    print(f"Total scores across all users: {total_all_scores} points")
+    print()
+
+    # Calculate normalization factors
+    print("🔢 CALCULATING NORMALIZATION FACTORS:")
+    print("-" * 50)
+    user_normalizations = {}
+    for email, user_total in user_totals.items():
+        if user_total > 0:
+            normalization_factor = average_user_total / user_total
+            user_normalizations[email] = normalization_factor
+            print(f"User {email}: {user_total} points → normalization factor = {average_user_total:.2f} ÷ {user_total} = {normalization_factor:.4f}")
+        else:
+            user_normalizations[email] = 1.0
+            print(f"User {email}: {user_total} points → normalization factor = 1.0 (no scores)")
+
+    print(f"Normalization factors: {user_normalizations}")
+    print()
+
+    # Apply normalization and combine results
+    combined_results = {}
+
+    print("🔄 APPLYING NORMALIZATION AND COMBINING RESULTS:")
+    print("-" * 50)
+
+    for email, user_results in all_final_results.items():
+        normalization = user_normalizations[email]
+        print(f"Processing user: {email} (normalization factor: {normalization:.4f})")
+
         for result in user_results:
             idea_id = result['id']
+            raw_score = result['finalScore'] or 0
+            normalized_score = raw_score * normalization
+
             if idea_id not in combined_results:
                 combined_results[idea_id] = {
                     'id': result['id'],
                     'title': result['title'],
                     'description': result['description'],
                     'final_score': 0,
-                    'user_scores': {}
+                    'user_scores': {},
+                    'normalized_user_scores': {}
                 }
+                print(f"  Created entry for Idea {idea_id} ({result['title']})")
 
-            # Add this user's final score for this idea
-            combined_results[idea_id]['final_score'] += result['finalScore'] or 0
-            combined_results[idea_id]['user_scores'][email] = result['finalScore'] or 0
+            # Store both raw and normalized scores
+            combined_results[idea_id]['user_scores'][email] = raw_score
+            combined_results[idea_id]['normalized_user_scores'][email] = normalized_score
+
+            # Add normalized score to final total
+            previous_total = combined_results[idea_id]['final_score']
+            combined_results[idea_id]['final_score'] += normalized_score
+
+            print(f"  Idea {idea_id}: raw={raw_score}, normalized={raw_score}×{normalization:.4f}={normalized_score:.4f}, total={previous_total:.4f}+{normalized_score:.4f}={combined_results[idea_id]['final_score']:.4f}")
+        print()
+
+    # Display final calculations summary
+    print("🏆 FINAL NORMALIZED CALCULATIONS SUMMARY:")
+    print("-" * 50)
+    print(f"Total participating users: {len(all_final_results)}")
+    print()
+
+    for idea_id, result in combined_results.items():
+        print(f"Idea {idea_id} - {result['title']}:")
+        print(f"  Raw scores: {result['user_scores']}")
+        print(f"  Normalized scores: {result['normalized_user_scores']}")
+        print(f"  Final normalized score: {result['final_score']:.4f}")
+        print()
 
     # Convert to list and sort by final score
     final_results_list = list(combined_results.values())
     final_results_list.sort(key=lambda x: x['final_score'], reverse=True)
 
+    print("📊 FINAL NORMALIZED RANKINGS (sorted by normalized score):")
+    print("-" * 50)
+    for i, result in enumerate(final_results_list, 1):
+        print(f"{i}. Idea {result['id']} - {result['title']}: {result['final_score']:.4f} points")
+        print(f"   Raw scores: {result['user_scores']}")
+        print(f"   Normalized scores: {result['normalized_user_scores']}")
+    print()
+
     # Save combined final results
     with open('final_results.json', 'w') as f:
         json.dump(final_results_list, f, indent=2)
 
-    print("💾 Saved combined final results to final_results.json")
-    print("🏆 Final results storage complete!")
+    print("💾 Saved normalized final results to final_results.json")
+    print("🏆 Final results calculation and storage complete!")
+    print("=" * 80)
 
 
 @app.route('/submit-vote', methods=['POST'])
