@@ -90,28 +90,73 @@ async function showVotingStatusPageFromAPI(statusData) {
     // Hide the main game container and show status page
     document.querySelector('.game-container').style.display = 'none';
 
-    // Create status page
+    // Create status page with tabs
     const statusContainer = document.createElement('div');
     statusContainer.id = 'statusContainer';
     statusContainer.className = 'status-container';
     statusContainer.innerHTML = `
         <div class="status-header">
-            <h2>🗳️ Voting Status</h2>
-            <p>You have already completed your voting. Here's the current status:</p>
+            <h2>🗳️ Voting Complete</h2>
+            <p>You have finished your voting. Check the status below:</p>
         </div>
-        <div class="users-status">
-            ${statusData.users.map(user => `
-                <div class="user-status-item ${user.has_voted ? 'completed' : 'waiting'}">
-                    <span class="status-icon">${user.has_voted ? '✅' : '⏳'}</span>
-                    <span class="user-email">${user.email}</span>
-                    <div class="status-text">${user.has_voted ? 'Completed' : 'Waiting'}</div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="switchTab('waiting-status')">Waiting Status</button>
+            <button class="tab-button" onclick="switchTab('my-scores')">My Scores</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="waiting-status-tab" class="tab-content active">
+            <div class="users-status">
+                ${statusData.users.map(user => `
+                    <div class="user-status-item ${user.has_voted ? 'completed' : 'waiting'}">
+                        <span class="status-icon">${user.has_voted ? '✅' : '⏳'}</span>
+                        <span class="user-email">${user.email}</span>
+                        <div class="status-text">${user.has_voted ? 'Completed' : 'Waiting'}</div>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="status-summary">
+                <div class="summary-stat">
+                    <div class="stat-number">${statusData.voted_count}/${statusData.total_users}</div>
+                    <div class="stat-label">Users Completed</div>
                 </div>
-            `).join('')}
+            </div>
         </div>
-        <div class="status-summary">
-            <div class="summary-stat">
-                <div class="stat-number">${statusData.voted_count}/${statusData.total_users}</div>
-                <div class="stat-label">Users Completed</div>
+
+        <div id="my-scores-tab" class="tab-content">
+            <div class="my-scores-content">
+                <h3>Your Final Scores</h3>
+                <p>Here are the scores you assigned to each idea during your voting:</p>
+                <div class="personal-scores-list">
+                    ${finalResults.map(result => `
+                        <div class="personal-score-item">
+                            <div class="idea-info">
+                                <div class="idea-title">${result.title}</div>
+                                <div class="idea-description">${result.description}</div>
+                            </div>
+                            <div class="score-breakdown">
+                                <div class="score-detail">
+                                    <span class="score-label">Round 1:</span>
+                                    <span class="score-value">${result.round1Score || 0}</span>
+                                </div>
+                                <div class="score-detail">
+                                    <span class="score-label">Round 2:</span>
+                                    <span class="score-value">${result.round2Score || 0}</span>
+                                </div>
+                                <div class="score-detail">
+                                    <span class="score-label">Round 3:</span>
+                                    <span class="score-value">${result.round3Score || 0}</span>
+                                </div>
+                                <div class="score-detail total">
+                                    <span class="score-label">Total:</span>
+                                    <span class="score-value">${result.finalScore || 0}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         </div>
     `;
@@ -120,7 +165,7 @@ async function showVotingStatusPageFromAPI(statusData) {
     const header = document.querySelector('.header');
     header.insertAdjacentElement('afterend', statusContainer);
 
-    // If all users have voted, show final results
+    // If all users have voted, show final results instead of status tabs
     if (statusData.all_voted) {
         await showFinalResults();
     } else {
@@ -135,6 +180,28 @@ async function showVotingStatusPageFromAPI(statusData) {
         };
 
         statusContainer.querySelector('.status-summary').appendChild(refreshButton);
+    }
+}
+
+function switchTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+
+    // Remove active class from all tab buttons
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => button.classList.remove('active'));
+
+    // Show selected tab content
+    const selectedTab = document.getElementById(tabName + '-tab');
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+
+    // Add active class to selected tab button
+    const selectedButton = document.querySelector(`[onclick="switchTab('${tabName}')"]`);
+    if (selectedButton) {
+        selectedButton.classList.add('active');
     }
 }
 
@@ -276,6 +343,7 @@ async function initVoting() {
         currentGroupIndex = 0;
         isVotingComplete = false;
         round1Results = [];
+        finalResults = []; // Initialize final results array
 
         renderIdeas();
         updateUI();
